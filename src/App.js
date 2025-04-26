@@ -1,8 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Box from './components/Box';
 import GlobalStyles from './styles/GlobalStyles';
 
 function App() {
+  useEffect(() => {
+    console.log('App component mounted');
+    // Check if GlobalStyles and other components are loading
+    console.log('Components loaded:', {
+      GlobalStyles: !!GlobalStyles,
+      Box: !!Box
+    });
+  }, []);
+
   return (
     <>
       <GlobalStyles />

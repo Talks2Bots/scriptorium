@@ -67,6 +67,20 @@ const ModalImage = styled.img`
   object-fit: contain;
 `;
 
+const PlaceholderImage = styled.div`
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 20px;
+  background-color: #d1c3a8;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Georgia, serif;
+  font-size: 40px;
+  color: #2a5674;
+`;
+
 const ModalTitle = styled.h2`
   font-family: 'Georgia', serif;
   margin-bottom: 16px;
@@ -103,6 +117,8 @@ const Modal = ({ onClose, imageUrl, title, description }) => {
   const modalRef = useRef();
   
   useEffect(() => {
+    console.log('Modal opened for:', title);
+    
     const handleClickOutside = (event) => {
       if (modalRef.current && !modalRef.current.contains(event.target)) {
         onClose();
@@ -126,13 +142,30 @@ const Modal = ({ onClose, imageUrl, title, description }) => {
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'auto';
     };
-  }, [onClose]);
+  }, [onClose, title]);
 
   return (
     <ModalOverlay>
       <ModalContent ref={modalRef}>
         <CloseButton onClick={onClose}>&times;</CloseButton>
-        <ModalImage src={imageUrl} alt={title} />
+        
+        {imageUrl ? (
+          <ModalImage 
+            src={imageUrl} 
+            alt={title} 
+            onError={(e) => {
+              console.error('Error loading modal image:', imageUrl);
+              e.target.style.display = 'none';
+              e.target.parentNode.insertBefore(
+                document.createElement('div'), 
+                e.target.nextSibling
+              ).outerHTML = `<div style="width:150px;height:150px;margin:0 auto 20px;background:#d1c3a8;border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:40px;">${title.charAt(0)}</div>`;
+            }}
+          />
+        ) : (
+          <PlaceholderImage>{title.charAt(0)}</PlaceholderImage>
+        )}
+        
         <ModalTitle>{title}</ModalTitle>
         <ModalDescription dangerouslySetInnerHTML={{ __html: description }} />
       </ModalContent>

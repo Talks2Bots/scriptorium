@@ -86,12 +86,31 @@ const Box = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [objects, setObjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    console.log('Box component mounted');
     const loadObjects = async () => {
-      const objectsData = await fetchObjects();
-      setObjects(objectsData);
-      setIsLoading(false);
+      try {
+        console.log('Attempting to fetch objects from Supabase');
+        const objectsData = await fetchObjects();
+        console.log('Fetched objects:', objectsData);
+        
+        if (!objectsData || objectsData.length === 0) {
+          // If no data returned, use mock data
+          console.log('No data returned, using mock data');
+          setObjects(getMockObjects());
+        } else {
+          setObjects(objectsData);
+        }
+      } catch (err) {
+        console.error('Error loading objects:', err);
+        setError(err.message);
+        // Use mock data on error
+        setObjects(getMockObjects());
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadObjects();
@@ -100,6 +119,42 @@ const Box = () => {
   const handleOpen = () => {
     setIsOpen(true);
   };
+
+  // Mock data function
+  const getMockObjects = () => {
+    return Array(9).fill(null).map((_, index) => ({
+      id: index + 1,
+      name: `Sample Object ${index + 1}`,
+      image_url: null,
+      opened_image_url: null,
+      description: `This is a sample object for testing. No Supabase connection available.`
+    }));
+  };
+
+  if (error) {
+    return (
+      <div style={{ textAlign: 'center', padding: '20px' }}>
+        <h3>Error loading content:</h3>
+        <p>{error}</p>
+        <p>Displaying demo content instead.</p>
+        <BoxContainer>
+          <BoxOuter>
+            <BoxInner>
+              {objects.map((object) => (
+                <Slot key={object.id} object={object} />
+              ))}
+            </BoxInner>
+            <BoxLid isOpen={isOpen} />
+          </BoxOuter>
+          {!isOpen && (
+            <OpenButton onClick={handleOpen}>
+              Open Scriptorium
+            </OpenButton>
+          )}
+        </BoxContainer>
+      </div>
+    );
+  }
 
   return (
     <BoxContainer>
