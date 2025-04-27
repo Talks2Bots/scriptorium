@@ -37,37 +37,37 @@ const SlotPosition = styled.div`
   transform: translate(-50%, -50%);
   
   &.slot-1 {
-    top: 33%;
+    top: 23%;
     left: 50%;
   }
   
   &.slot-2 {
-    top: 42%;
-    left: 72%;
+    top: 40%;
+    left: 78%;
   }
   
   &.slot-3 {
-    top: 63%;
+    top: 70%;
     left: 68%;
   }
   
   &.slot-4 {
-    top: 75%;
+    top: 80%;
     left: 50%;
   }
   
   &.slot-5 {
-    top: 63%;
+    top: 70%;
     left: 32%;
   }
   
   &.slot-6 {
-    top: 42%;
-    left: 28%;
+    top: 40%;
+    left: 22%;
   }
   
   &.slot-center {
-    top: 50%;
+    top: 53%;
     left: 50%;
     width: 18%;
     height: 18%;
