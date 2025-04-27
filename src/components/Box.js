@@ -32,6 +32,56 @@ const BoxMask = styled.img`
 const Box = () => {
   const boxRef = useRef(null);
   
+  // Add the necessary CSS to the document
+  useEffect(() => {
+    // Create a style element
+    const style = document.createElement('style');
+    
+    // Add the CSS for eggs
+    style.textContent = `
+      .box-wrapper {
+        position: relative;
+        width: 60vmin;
+        display: inline-block;
+      }
+      
+      .box-bg {
+        width: 100%;
+        display: block;
+      }
+      
+      .egg {
+        position: absolute;
+        transform: translate(-50%, -65%);
+        pointer-events: auto;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+      }
+      
+      .egg:hover {
+        transform: translate(-50%, -65%) scale(1.05);
+      }
+      
+      .box-mask {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        pointer-events: none;
+      }
+      
+      /* Debug outline - remove in production */
+      /* .box-wrapper { outline: 2px dashed lime; } */
+    `;
+    
+    // Add the style to the document head
+    document.head.appendChild(style);
+    
+    // Cleanup
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+  
   useEffect(() => {
     // Only run after component mounts and boxRef is available
     if (!boxRef.current) return;
@@ -112,55 +162,5 @@ const Box = () => {
     </BoxWrapper>
   );
 };
-
-// Add the necessary CSS to the document
-useEffect(() => {
-  // Create a style element
-  const style = document.createElement('style');
-  
-  // Add the CSS for eggs
-  style.textContent = `
-    .box-wrapper {
-      position: relative;
-      width: 60vmin;
-      display: inline-block;
-    }
-    
-    .box-bg {
-      width: 100%;
-      display: block;
-    }
-    
-    .egg {
-      position: absolute;
-      transform: translate(-50%, -65%);
-      pointer-events: auto;
-      cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-    
-    .egg:hover {
-      transform: translate(-50%, -65%) scale(1.05);
-    }
-    
-    .box-mask {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      pointer-events: none;
-    }
-    
-    /* Debug outline - remove in production */
-    /* .box-wrapper { outline: 2px dashed lime; } */
-  `;
-  
-  // Add the style to the document head
-  document.head.appendChild(style);
-  
-  // Cleanup
-  return () => {
-    document.head.removeChild(style);
-  };
-}, []);
 
 export default Box; 
