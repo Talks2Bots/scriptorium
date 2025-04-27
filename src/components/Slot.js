@@ -25,6 +25,20 @@ const ObjectImage = styled.img`
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
 `;
 
+// Special styling for the egg image
+const EggImage = styled.img`
+  width: 130%; /* Make egg larger than the slot */
+  height: 130%;
+  object-fit: contain;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+  transform: translateY(25%); /* Move the egg down into the cup */
+  
+  &:hover {
+    transform: translateY(25%) scale(1.05);
+  }
+`;
+
 const PlaceholderImage = styled.div`
   width: 100%;
   height: 100%;
@@ -69,7 +83,7 @@ const Slot = ({ object, slotClassName }) => {
     <>
       <SlotContainer onClick={handleClick}>
         {isEgg ? (
-          <ObjectImage 
+          <EggImage 
             src={eggImagePath} 
             alt="Robin's Egg" 
             className="chocolate"
