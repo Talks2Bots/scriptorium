@@ -32,42 +32,42 @@ const BoxImage = styled.div`
 // Slot positioning
 const SlotPosition = styled.div`
   position: absolute;
-  width: ${props => props.className === 'slot-1' ? '30%' : '15%'};
-  height: ${props => props.className === 'slot-1' ? '30%' : '15%'};
+  width: ${props => props.className === 'slot-1' ? '30%' : '17%'};
+  height: ${props => props.className === 'slot-1' ? '30%' : '17%'};
   transform: translate(-50%, -50%);
   
   &.slot-1 {
-    top: 23%;
+    top: 31%;
     left: 50%;
   }
   
   &.slot-2 {
-    top: 40%;
+    top: 43%;
     left: 78%;
   }
   
   &.slot-3 {
-    top: 70%;
+    top: 64%;
     left: 68%;
   }
   
   &.slot-4 {
-    top: 80%;
+    top: 71%;
     left: 50%;
   }
   
   &.slot-5 {
-    top: 70%;
+    top: 64%;
     left: 32%;
   }
   
   &.slot-6 {
-    top: 40%;
+    top: 43%;
     left: 22%;
   }
   
   &.slot-center {
-    top: 53%;
+    top: 52%;
     left: 50%;
     width: 18%;
     height: 18%;

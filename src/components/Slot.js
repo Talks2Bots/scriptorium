@@ -23,6 +23,13 @@ const ObjectImage = styled.img`
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
 `;
 
+// Additional styling for chocolate class - for proper egg positioning
+const ChocolateStyle = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+`;
+
 const Slot = ({ object, slotClassName }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
@@ -40,7 +47,7 @@ const Slot = ({ object, slotClassName }) => {
   return (
     <>
       <SlotContainer onClick={handleClick}>
-        <ObjectImage 
+        <ChocolateStyle 
           src={eggImagePath} 
           alt="Robin's Egg" 
           className="chocolate"
