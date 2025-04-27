@@ -87,14 +87,15 @@ const ObjectImage = styled.img`
 `;
 
 const EggImage = styled.img`
-  width: 100%;
-  height: 100%;
+  width: 90%;
+  height: 90%;
   object-fit: contain;
   transition: transform 0.3s ease;
   filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.2));
+  transform: translateY(15px); /* Move the egg down more to fit better in the cavity */
   
   ${SlotContainer}:hover & {
-    transform: scale(1.08);
+    transform: translateY(15px) scale(1.08);
   }
 `;
 
@@ -148,12 +149,15 @@ const Slot = ({ object, slotClassName }) => {
   const imageSource = image_url ? getImageUrl(image_url) : null;
   const openedImageSource = opened_image_url ? getImageUrl(opened_image_url) : null;
 
+  // Using direct image path to avoid possible Supabase issues
+  const eggImagePath = '/images/robin-egg-1.jpg';
+
   return (
     <>
       <SlotContainer onClick={handleClick} isEgg={isEgg}>
         {isEgg ? (
           <EggImage 
-            src="/images/robin-egg-1.jpg" 
+            src={eggImagePath} 
             alt="Robin's Egg" 
           />
         ) : (
@@ -181,7 +185,7 @@ const Slot = ({ object, slotClassName }) => {
       {isModalOpen && (
         <Modal 
           onClose={handleCloseModal}
-          imageUrl={isEgg ? "/images/robin-egg-1.jpg" : openedImageSource}
+          imageUrl={isEgg ? eggImagePath : openedImageSource}
           title={isEgg ? "Robin's Egg" : name}
           description={isEgg ? "A beautiful robin's egg with a speckled blue shell." : description}
         />
