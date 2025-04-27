@@ -16,14 +16,7 @@ const SlotContainer = styled.div`
   }
 `;
 
-const ObjectImage = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
-`;
-
-// Additional styling for chocolate class - for proper egg positioning
+// Styling for chocolate class - for proper egg positioning
 const ChocolateStyle = styled.img`
   width: 100%;
   height: 100%;
