@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import { fetchObjects } from '../utils/supabase';
 import { CUP_MAP } from '../utils/cupMap';
-import Modal from './Modal';
 
+// Styled components following the exact CSS recommendations
 const BoxWrapper = styled.div`
   position: relative;
-  width: 80vmin;
-  max-width: 900px;
+  width: 60vmin;
+  display: inline-block;
   margin: 0 auto;
+  display: block;
   
   @media (max-width: 600px) {
-    width: 95vmin;
+    width: 80vmin;
   }
 `;
 
@@ -20,179 +20,147 @@ const BoxBackground = styled.img`
   display: block;
 `;
 
-const Egg = styled.img`
+const BoxMask = styled.img`
   position: absolute;
-  transform: translate(-50%, -65%);
-  cursor: pointer;
-  transition: transform 0.2s ease;
-  
-  &:hover {
-    transform: translate(-50%, -65%) scale(1.05);
-  }
-  
-  /* Add slight perspective tilt to back row eggs */
-  &.back-row {
-    transform: translate(-50%, -65%) perspective(700px) rotateX(12deg);
-    
-    &:hover {
-      transform: translate(-50%, -65%) perspective(700px) rotateX(12deg) scale(1.05);
-    }
-  }
+  inset: 0;
+  width: 100%;
+  pointer-events: none;
 `;
 
-const LoadingMessage = styled.div`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #fff;
-  text-shadow: 0 0 5px rgba(0,0,0,0.7);
-  font-size: 1.2rem;
-`;
-
+// The Box component now just renders the structure,
+// and JavaScript handles the egg placement
 const Box = () => {
-  const [objects, setObjects] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [modalInfo, setModalInfo] = useState({ isOpen: false, object: null });
-  const [wrapperSize, setWrapperSize] = useState({ width: 0, height: 0 });
-  const wrapperRef = React.useRef(null);
-
-  // Load objects
+  const boxRef = useRef(null);
+  
   useEffect(() => {
-    const loadObjects = async () => {
-      try {
-        const objectsData = await fetchObjects();
+    // Only run after component mounts and boxRef is available
+    if (!boxRef.current) return;
+    
+    const placeEggs = () => {
+      const wrapper = boxRef.current;
+      if (!wrapper) return console.error('wrapper not found');
+      
+      // Wait until the background image has loaded
+      const bg = wrapper.querySelector('.box-bg');
+      if (!bg.complete) {
+        bg.onload = placeEggs;
+        return;
+      }
+      
+      // Clear any existing eggs before placing new ones
+      const existingEggs = wrapper.querySelectorAll('.egg');
+      existingEggs.forEach(egg => egg.remove());
+      
+      // Get the dimensions of the wrapper
+      const W = wrapper.clientWidth;
+      const H = wrapper.clientHeight;
+      
+      // Create eggs for each cup position
+      CUP_MAP.slice(0, 7).forEach((cup, i) => {
+        const { cx, cy, r } = cup;
         
-        if (!objectsData || objectsData.length === 0) {
-          // If no data returned, use mock data
-          setObjects(getMockObjects());
-        } else {
-          setObjects(objectsData);
-        }
-      } catch (err) {
-        console.error('Error loading objects:', err);
-        setError(err.message);
-        // Use mock data on error
-        setObjects(getMockObjects());
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadObjects();
-  }, []);
-
-  // Update wrapper size on mount and window resize
-  useEffect(() => {
-    const updateSize = () => {
-      if (wrapperRef.current) {
-        setWrapperSize({
-          width: wrapperRef.current.offsetWidth,
-          height: wrapperRef.current.offsetHeight
+        // Create an egg image
+        const img = new Image();
+        img.src = `/images/robin-egg.png?v=${Date.now()}`;
+        img.className = 'egg';
+        img.alt = `Robin's Egg ${i + 1}`;
+        
+        // Calculate size and position
+        const eggPx = r * 2 * 1.1 * W; // radius → diameter → +10%
+        img.style.width = `${eggPx}px`;
+        img.style.left = `${cx * W}px`;
+        img.style.top = `${cy * H}px`;
+        
+        // Add click handler if needed
+        img.addEventListener('click', () => {
+          console.log(`Egg ${i + 1} clicked`);
+          // Add modal handling here if desired
         });
-      }
+        
+        wrapper.appendChild(img);
+      });
     };
-
-    // Initial size
-    updateSize();
-
-    // Add resize listener
-    window.addEventListener('resize', updateSize);
+    
+    // Initial placement
+    placeEggs();
+    
+    // Reposition eggs on window resize
+    window.addEventListener('resize', placeEggs);
     
     // Cleanup
-    return () => window.removeEventListener('resize', updateSize);
+    return () => {
+      window.removeEventListener('resize', placeEggs);
+    };
   }, []);
-
-  // Mock data function
-  const getMockObjects = () => {
-    return Array(7).fill(null).map((_, index) => ({
-      id: index + 1,
-      name: `Sample Object ${index + 1}`,
-      image_url: null,
-      opened_image_url: null,
-      description: `This is a sample object for testing. No Supabase connection available.`
-    }));
-  };
-
-  const handleEggClick = (object) => {
-    setModalInfo({
-      isOpen: true,
-      object
-    });
-  };
-
-  const handleCloseModal = () => {
-    setModalInfo({
-      isOpen: false,
-      object: null
-    });
-  };
-
-  // Force cache refresh with a unique timestamp
-  const getEggImagePath = () => '/images/robin-egg.png?v=' + Date.now();
-
-  // Determine if an egg is in the back row (for perspective tilt)
-  const isBackRow = (index) => {
-    // Cups 0, 1, 2 are in the back row
-    return index <= 2;
-  };
-
-  if (error && !objects.length) {
-    return (
-      <div style={{ textAlign: 'center', padding: '20px' }}>
-        <h3>Error loading content:</h3>
-        <p>{error}</p>
-        <p>Displaying demo content instead.</p>
-      </div>
-    );
-  }
-
+  
   return (
-    <>
-      <BoxWrapper ref={wrapperRef}>
-        <BoxBackground src="/images/open_box.jpg" alt="Open Box" />
-        
-        {isLoading ? (
-          <LoadingMessage>Loading treasures...</LoadingMessage>
-        ) : (
-          objects.slice(0, 7).map((object, index) => {
-            const cup = CUP_MAP[index];
-            if (!cup) return null;
-            
-            // Calculate position and size based on cup map
-            const left = cup.cx * wrapperSize.width;
-            const top = cup.cy * wrapperSize.height;
-            const diameter = cup.r * 2 * 1.1 * wrapperSize.width; // 1.1x cup diameter
-            
-            return (
-              <Egg
-                key={object.id}
-                src={getEggImagePath()}
-                alt={`Robin's Egg ${index + 1}`}
-                className={isBackRow(index) ? 'back-row' : ''}
-                style={{
-                  left: `${left}px`,
-                  top: `${top}px`,
-                  width: `${diameter}px`,
-                }}
-                onClick={() => handleEggClick(object)}
-              />
-            );
-          })
-        )}
-      </BoxWrapper>
+    <BoxWrapper id="treasure-box" className="box-wrapper" ref={boxRef}>
+      <BoxBackground 
+        src="/images/open_box.jpg" 
+        alt="box" 
+        className="box-bg"
+      />
       
-      {modalInfo.isOpen && (
-        <Modal
-          onClose={handleCloseModal}
-          imageUrl={getEggImagePath()}
-          title="Robin's Egg"
-          description="A beautiful robin's egg with a speckled blue shell."
-        />
-      )}
-    </>
+      {/* Optional mask - uncomment when we have the image */}
+      {/* <BoxMask 
+        src="/images/box-lip-mask.png" 
+        className="box-mask" 
+        alt="mask"
+      /> */}
+      
+      {/* Eggs will be added here by JavaScript */}
+    </BoxWrapper>
   );
 };
+
+// Add the necessary CSS to the document
+useEffect(() => {
+  // Create a style element
+  const style = document.createElement('style');
+  
+  // Add the CSS for eggs
+  style.textContent = `
+    .box-wrapper {
+      position: relative;
+      width: 60vmin;
+      display: inline-block;
+    }
+    
+    .box-bg {
+      width: 100%;
+      display: block;
+    }
+    
+    .egg {
+      position: absolute;
+      transform: translate(-50%, -65%);
+      pointer-events: auto;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    
+    .egg:hover {
+      transform: translate(-50%, -65%) scale(1.05);
+    }
+    
+    .box-mask {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      pointer-events: none;
+    }
+    
+    /* Debug outline - remove in production */
+    /* .box-wrapper { outline: 2px dashed lime; } */
+  `;
+  
+  // Add the style to the document head
+  document.head.appendChild(style);
+  
+  // Cleanup
+  return () => {
+    document.head.removeChild(style);
+  };
+}, []);
 
 export default Box; 
