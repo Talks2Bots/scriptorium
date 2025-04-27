@@ -20,13 +20,6 @@ const BoxBackground = styled.img`
   display: block;
 `;
 
-const BoxMask = styled.img`
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  pointer-events: none;
-`;
-
 // The Box component now just renders the structure,
 // and JavaScript handles the egg placement
 const Box = () => {
@@ -150,13 +143,6 @@ const Box = () => {
         alt="box" 
         className="box-bg"
       />
-      
-      {/* Optional mask - uncomment when we have the image */}
-      {/* <BoxMask 
-        src="/images/box-lip-mask.png" 
-        className="box-mask" 
-        alt="mask"
-      /> */}
       
       {/* Eggs will be added here by JavaScript */}
     </BoxWrapper>
