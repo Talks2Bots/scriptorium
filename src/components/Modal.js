@@ -198,7 +198,7 @@ const ModalDescription = styled.div`
   }
 `;
 
-const Modal = ({ onClose, imageUrl, title, description }) => {
+const Modal = ({ onClose, imageUrl, title, description, customContent }) => {
   const modalRef = useRef();
   
   useEffect(() => {
@@ -234,25 +234,35 @@ const Modal = ({ onClose, imageUrl, title, description }) => {
       <ModalContent ref={modalRef}>
         <CloseButton onClick={onClose}>&times;</CloseButton>
         
-        {imageUrl ? (
-          <ModalImage 
-            src={imageUrl} 
-            alt={title} 
-            onError={(e) => {
-              console.error('Error loading modal image:', imageUrl);
-              e.target.style.display = 'none';
-              e.target.parentNode.insertBefore(
-                document.createElement('div'), 
-                e.target.nextSibling
-              ).outerHTML = `<div style="width:160px;height:160px;margin:0 auto 30px;background:radial-gradient(circle at center, #e0d2b4 0%, #d1c3a8 70%);border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:56px;color:#2a5674;box-shadow:inset 0 3px 8px rgba(255,255,255,0.5),inset 0 -3px 8px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1);">${title.charAt(0)}</div>`;
-            }}
-          />
+        {customContent ? (
+          customContent
         ) : (
-          <PlaceholderImage>{title.charAt(0)}</PlaceholderImage>
+          <>
+            {imageUrl ? (
+              <ModalImage 
+                src={imageUrl} 
+                alt={title} 
+                onError={(e) => {
+                  console.error('Error loading modal image:', imageUrl);
+                  e.target.style.display = 'none';
+                  e.target.parentNode.insertBefore(
+                    document.createElement('div'), 
+                    e.target.nextSibling
+                  ).outerHTML = `<div style="width:160px;height:160px;margin:0 auto 30px;background:radial-gradient(circle at center, #e0d2b4 0%, #d1c3a8 70%);border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:56px;color:#2a5674;box-shadow:inset 0 3px 8px rgba(255,255,255,0.5),inset 0 -3px 8px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1);">${title.charAt(0)}</div>`;
+                }}
+              />
+            ) : (
+              <PlaceholderImage>
+                {title.charAt(0)}
+              </PlaceholderImage>
+            )}
+            
+            <ModalTitle>{title}</ModalTitle>
+            <ModalDescription>
+              {description}
+            </ModalDescription>
+          </>
         )}
-        
-        <ModalTitle>{title}</ModalTitle>
-        <ModalDescription dangerouslySetInnerHTML={{ __html: description }} />
       </ModalContent>
     </ModalOverlay>
   );

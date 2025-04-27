@@ -86,16 +86,16 @@ const ObjectImage = styled.img`
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
 `;
 
-const EggImage = styled.img`
-  width: 90%;
-  height: 90%;
-  object-fit: contain;
-  transition: transform 0.3s ease;
+// Custom egg SVG directly in component
+const EggSVG = styled.svg`
+  width: 70%;
+  height: 70%;
+  margin-top: 25%;
   filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.2));
-  transform: translateY(15px); /* Move the egg down more to fit better in the cavity */
+  transition: transform 0.3s ease;
   
   ${SlotContainer}:hover & {
-    transform: translateY(15px) scale(1.08);
+    transform: scale(1.08);
   }
 `;
 
@@ -149,17 +149,59 @@ const Slot = ({ object, slotClassName }) => {
   const imageSource = image_url ? getImageUrl(image_url) : null;
   const openedImageSource = opened_image_url ? getImageUrl(opened_image_url) : null;
 
-  // Using direct image path to avoid possible Supabase issues
-  const eggImagePath = '/images/robin-egg-2.jpg?v=2';
-
+  // Using embedded SVG to avoid any file loading issues
   return (
     <>
       <SlotContainer onClick={handleClick} isEgg={isEgg}>
         {isEgg ? (
-          <EggImage 
-            src={eggImagePath} 
-            alt="Robin's Egg" 
-          />
+          <EggSVG viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="eggGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                <stop offset="0%" stopColor="#aeddff" />
+                <stop offset="80%" stopColor="#75b7ff" />
+                <stop offset="100%" stopColor="#5e9fe0" />
+              </radialGradient>
+              <filter id="eggShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="2" />
+                <feOffset dx="0" dy="3" result="offsetblur" />
+                <feComponentTransfer>
+                  <feFuncA type="linear" slope="0.5" />
+                </feComponentTransfer>
+                <feMerge>
+                  <feMergeNode />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <ellipse 
+              cx="50" 
+              cy="65" 
+              rx="40" 
+              ry="50" 
+              fill="url(#eggGradient)" 
+              filter="url(#eggShadow)" 
+            />
+            <g opacity="0.3">
+              {Array.from({ length: 20 }).map((_, i) => (
+                <circle 
+                  key={i} 
+                  cx={30 + Math.random() * 40} 
+                  cy={30 + Math.random() * 70} 
+                  r={1 + Math.random() * 2} 
+                  fill="#3a5e72" 
+                />
+              ))}
+            </g>
+            <ellipse 
+              cx="65" 
+              cy="40" 
+              rx="10" 
+              ry="5" 
+              fill="white" 
+              opacity="0.2" 
+              transform="rotate(-20, 65, 40)" 
+            />
+          </EggSVG>
         ) : (
           <ObjectImageContainer isEgg={isEgg}>
             {imageSource ? (
@@ -185,9 +227,62 @@ const Slot = ({ object, slotClassName }) => {
       {isModalOpen && (
         <Modal 
           onClose={handleCloseModal}
-          imageUrl={isEgg ? eggImagePath : openedImageSource}
+          imageUrl={isEgg ? null : openedImageSource}
           title={isEgg ? "Robin's Egg" : name}
           description={isEgg ? "A beautiful robin's egg with a speckled blue shell." : description}
+          customContent={isEgg ? (
+            <div style={{textAlign: 'center', padding: '20px'}}>
+              <EggSVG viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg" style={{width: '200px', height: '200px', margin: '0 auto 20px'}}>
+                <defs>
+                  <radialGradient id="eggGradientModal" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                    <stop offset="0%" stopColor="#aeddff" />
+                    <stop offset="80%" stopColor="#75b7ff" />
+                    <stop offset="100%" stopColor="#5e9fe0" />
+                  </radialGradient>
+                  <filter id="eggShadowModal" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="2" />
+                    <feOffset dx="0" dy="3" result="offsetblur" />
+                    <feComponentTransfer>
+                      <feFuncA type="linear" slope="0.5" />
+                    </feComponentTransfer>
+                    <feMerge>
+                      <feMergeNode />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+                <ellipse 
+                  cx="50" 
+                  cy="65" 
+                  rx="40" 
+                  ry="50" 
+                  fill="url(#eggGradientModal)" 
+                  filter="url(#eggShadowModal)" 
+                />
+                <g opacity="0.3">
+                  {Array.from({ length: 20 }).map((_, i) => (
+                    <circle 
+                      key={i} 
+                      cx={30 + Math.random() * 40} 
+                      cy={30 + Math.random() * 70} 
+                      r={1 + Math.random() * 2} 
+                      fill="#3a5e72" 
+                    />
+                  ))}
+                </g>
+                <ellipse 
+                  cx="65" 
+                  cy="40" 
+                  rx="10" 
+                  ry="5" 
+                  fill="white" 
+                  opacity="0.2" 
+                  transform="rotate(-20, 65, 40)" 
+                />
+              </EggSVG>
+              <p>A beautiful robin's egg with a speckled blue shell.</p>
+            </div>
+          ) : null}
         />
       )}
     </>
