@@ -27,15 +27,15 @@ const ObjectImage = styled.img`
 
 // Special styling for the egg image
 const EggImage = styled.img`
-  width: 130%; /* Make egg larger than the slot */
-  height: 130%;
+  width: 180%; /* Make egg much larger */
+  height: 180%;
   object-fit: contain;
   transition: all 0.3s ease;
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
-  transform: translateY(25%); /* Move the egg down into the cup */
+  transform: translateY(30%); /* Position egg further down */
   
   &:hover {
-    transform: translateY(25%) scale(1.05);
+    transform: translateY(30%) scale(1.05);
   }
 `;
 
@@ -77,7 +77,7 @@ const Slot = ({ object, slotClassName }) => {
   const openedImageSource = opened_image_url ? getImageUrl(opened_image_url) : null;
 
   // Hardcoded egg image path
-  const eggImagePath = '/images/robin-egg.png';
+  const eggImagePath = '/images/robin-egg.png?v=' + Date.now();
 
   return (
     <>
