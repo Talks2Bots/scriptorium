@@ -13,7 +13,7 @@ const SlotContainer = styled.div`
   transition: transform 0.3s ease;
   
   &:hover {
-    transform: scale(1.1);
+    transform: scale(1.05);
   }
 `;
 
@@ -21,7 +21,6 @@ const ObjectImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: contain;
-  transition: all 0.3s ease;
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
 `;
 
@@ -76,14 +75,14 @@ const Slot = ({ object, slotClassName }) => {
   const imageSource = image_url ? getImageUrl(image_url) : null;
   const openedImageSource = opened_image_url ? getImageUrl(opened_image_url) : null;
 
-  // Hardcoded egg image path
-  const eggImagePath = '/images/robin-egg.png?v=' + Date.now();
+  // Force cache refresh with a random number
+  const eggImagePath = '/images/robin-egg.png?v=' + Math.floor(Math.random() * 10000000);
 
   return (
     <>
       <SlotContainer onClick={handleClick}>
         {isEgg ? (
-          <EggImage 
+          <ObjectImage 
             src={eggImagePath} 
             alt="Robin's Egg" 
             className="chocolate"

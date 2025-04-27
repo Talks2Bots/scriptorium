@@ -7,7 +7,9 @@ const BoxContainer = styled.div`
   position: relative;
   width: 90vw;
   max-width: 500px;
-  margin: 20px auto 80px; /* Add space at top and bottom */
+  margin: 0 auto;
+  padding-top: 0;
+  padding-bottom: 40px;
   aspect-ratio: 1/1;
   
   /* Increase width slightly on very small screens */
@@ -30,8 +32,8 @@ const BoxImage = styled.div`
 // Slot positioning
 const SlotPosition = styled.div`
   position: absolute;
-  width: 15%;
-  height: 15%;
+  width: ${props => props.className === 'slot-1' ? '40%' : '15%'};
+  height: ${props => props.className === 'slot-1' ? '40%' : '15%'};
   transform: translate(-50%, -50%);
   
   &.slot-1 {
@@ -67,7 +69,7 @@ const SlotPosition = styled.div`
   &.slot-center {
     top: 53%;
     left: 50%;
-    width: 20%; /* Make center slot slightly larger */
+    width: 20%;
     height: 20%;
   }
 `;
