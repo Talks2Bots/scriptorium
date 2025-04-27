@@ -40,14 +40,6 @@ const Egg = styled.img`
   }
 `;
 
-const BoxMask = styled.img`
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  pointer-events: none;
-  z-index: 2;
-`;
-
 const LoadingMessage = styled.div`
   position: absolute;
   top: 50%;
@@ -189,9 +181,6 @@ const Box = () => {
             );
           })
         )}
-        
-        {/* Box lip mask - optional, uncomment if you add this image */}
-        {/* <BoxMask src="/images/box-lip-mask.png" alt="" /> */}
       </BoxWrapper>
       
       {modalInfo.isOpen && (
