@@ -26,8 +26,8 @@ const ObjectImage = styled.img`
 const Slot = ({ object, slotClassName }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // Force cache refresh with a random number
-  const eggImagePath = '/images/robin-egg.png?v=' + Math.floor(Math.random() * 10000000);
+  // Force cache refresh with a unique timestamp to show the updated egg image
+  const eggImagePath = '/images/robin-egg.png?v=' + Date.now();
   
   const handleClick = () => {
     setIsModalOpen(true);
