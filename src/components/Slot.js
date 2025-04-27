@@ -27,15 +27,17 @@ const ObjectImage = styled.img`
 
 // Special styling for the egg image
 const EggImage = styled.img`
-  width: 130%; /* Make egg larger than the slot */
-  height: 130%;
+  width: 160%; /* Make egg significantly larger */
+  height: 160%;
   object-fit: contain;
   transition: all 0.3s ease;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
-  transform: translateY(25%); /* Move the egg down into the cup */
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.15));
+  transform: translateY(40%); /* Move the egg much further down into the cup */
+  position: relative;
+  z-index: 5; /* Ensure egg appears above cup rim */
   
   &:hover {
-    transform: translateY(25%) scale(1.05);
+    transform: translateY(40%) scale(1.05);
   }
 `;
 
