@@ -14,68 +14,57 @@ const BoxContainer = styled.div`
   @media (max-width: 400px) {
     width: 95vw;
   }
-  
-  /* Add subtle shadow for lift effect */
-  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.15));
 `;
 
 const BoxImage = styled.div`
   width: 100%;
   height: 100%;
-  background-image: url('/images/open-box.jpg');
+  background-image: url('/images/open_box.jpg');
   background-size: cover;
   background-position: center;
   border-radius: 50%;
   position: relative;
 `;
 
-const SlotContainer = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-`;
-
+// Slot positioning
 const SlotPosition = styled.div`
   position: absolute;
   width: 15%;
   height: 15%;
   transform: translate(-50%, -50%);
   
-  /* Slot positions */
   &.slot-1 {
-    top: 15%;
-    left: 50%; /* Top */
+    top: 23%;
+    left: 50%;
   }
   
   &.slot-2 {
-    top: 30%;
-    left: 82%; /* Top right */
+    top: 38%;
+    left: 78%;
   }
   
   &.slot-3 {
     top: 70%;
-    left: 82%; /* Bottom right */
+    left: 70%;
   }
   
   &.slot-4 {
-    top: 85%;
-    left: 50%; /* Bottom */
+    top: 83%;
+    left: 50%;
   }
   
   &.slot-5 {
     top: 70%;
-    left: 18%; /* Bottom left */
+    left: 30%;
   }
   
   &.slot-6 {
-    top: 30%;
-    left: 18%; /* Top left */
+    top: 38%;
+    left: 22%;
   }
   
   &.slot-center {
-    top: 50%;
+    top: 53%;
     left: 50%;
     width: 20%; /* Make center slot slightly larger */
     height: 20%;
@@ -142,20 +131,17 @@ const Box = () => {
         <p>Displaying demo content instead.</p>
         <BoxContainer>
           <BoxImage>
-            <SlotContainer>
-              {objects.slice(0, 7).map((object, index) => (
-                <SlotPosition 
-                  key={object.id} 
-                  className={slotPositions[index]}
-                >
-                  <Slot 
-                    object={object} 
-                    isBiggerSlot={index === 6} // Center slot is bigger
-                    slotClassName={slotPositions[index]}
-                  />
-                </SlotPosition>
-              ))}
-            </SlotContainer>
+            {objects.slice(0, 7).map((object, index) => (
+              <SlotPosition 
+                key={object.id} 
+                className={slotPositions[index]}
+              >
+                <Slot 
+                  object={object} 
+                  slotClassName={slotPositions[index]}
+                />
+              </SlotPosition>
+            ))}
           </BoxImage>
         </BoxContainer>
       </div>
@@ -165,33 +151,30 @@ const Box = () => {
   return (
     <BoxContainer>
       <BoxImage>
-        <SlotContainer>
-          {isLoading ? (
-            <p style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              color: '#fff',
-              textShadow: '0 0 5px rgba(0,0,0,0.7)'
-            }}>
-              Loading treasures...
-            </p>
-          ) : (
-            objects.slice(0, 7).map((object, index) => (
-              <SlotPosition 
-                key={object.id} 
-                className={slotPositions[index]}
-              >
-                <Slot 
-                  object={object} 
-                  isBiggerSlot={index === 6} // Center slot is bigger
-                  slotClassName={slotPositions[index]}
-                />
-              </SlotPosition>
-            ))
-          )}
-        </SlotContainer>
+        {isLoading ? (
+          <p style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            color: '#fff',
+            textShadow: '0 0 5px rgba(0,0,0,0.7)'
+          }}>
+            Loading treasures...
+          </p>
+        ) : (
+          objects.slice(0, 7).map((object, index) => (
+            <SlotPosition 
+              key={object.id} 
+              className={slotPositions[index]}
+            >
+              <Slot 
+                object={object} 
+                slotClassName={slotPositions[index]}
+              />
+            </SlotPosition>
+          ))
+        )}
       </BoxImage>
     </BoxContainer>
   );
