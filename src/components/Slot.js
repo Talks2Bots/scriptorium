@@ -27,15 +27,15 @@ const ObjectImage = styled.img`
 
 // Special styling for the egg image
 const EggImage = styled.img`
-  width: 180%; /* Make egg much larger */
-  height: 180%;
+  width: 300%; /* Dramatically increase the egg size */
+  height: 300%;
   object-fit: contain;
   transition: all 0.3s ease;
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
-  transform: translateY(30%); /* Position egg further down */
+  transform: translateY(20%); /* Position egg */
   
   &:hover {
-    transform: translateY(30%) scale(1.05);
+    transform: translateY(20%) scale(1.05);
   }
 `;
 

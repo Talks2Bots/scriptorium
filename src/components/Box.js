@@ -7,12 +7,13 @@ const BoxContainer = styled.div`
   position: relative;
   width: 90vw;
   max-width: 500px;
-  margin: 0 auto;
+  margin: 20px auto 80px; /* Add space at top and bottom */
   aspect-ratio: 1/1;
   
   /* Increase width slightly on very small screens */
   @media (max-width: 400px) {
     width: 95vw;
+    margin: 10px auto 60px;
   }
 `;
 
