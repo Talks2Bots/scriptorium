@@ -44,7 +44,6 @@ const PlaceholderImage = styled.div`
 
 const Slot = ({ object, slotClassName }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { name, image_url, opened_image_url, description } = object || {};
   
   // Force cache refresh with a random number
   const eggImagePath = '/images/robin-egg.png?v=' + Math.floor(Math.random() * 10000000);
@@ -56,10 +55,6 @@ const Slot = ({ object, slotClassName }) => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
-
-  // If image URL is null, use a placeholder
-  const imageSource = image_url ? getImageUrl(image_url) : null;
-  const openedImageSource = opened_image_url ? getImageUrl(opened_image_url) : null;
 
   return (
     <>
