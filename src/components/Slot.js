@@ -4,33 +4,35 @@ import Modal from './Modal';
 import { getImageUrl } from '../utils/supabase';
 
 const SlotContainer = styled.div`
-  background-color: var(--secondary-color);
+  background-color: ${props => props.isEgg ? 'transparent' : 'var(--secondary-color)'};
   border-radius: 12px;
-  padding: 16px;
+  padding: ${props => props.isEgg ? '0' : '16px'};
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 
+  box-shadow: ${props => props.isEgg ? 'none' : `
     0 4px 8px rgba(0, 0, 0, 0.15),
-    inset 0 1px 3px rgba(255, 255, 255, 0.3);
+    inset 0 1px 3px rgba(255, 255, 255, 0.3)`};
   position: relative;
   overflow: hidden;
   transform-style: preserve-3d;
+  width: 100%;
+  height: 100%;
   
   /* Add subtle ripple effect to background */
-  background-image: radial-gradient(
+  background-image: ${props => props.isEgg ? 'none' : `radial-gradient(
     circle at center,
     rgba(255, 255, 255, 0.05) 0%,
     rgba(0, 0, 0, 0.05) 100%
-  );
+  )`};
   
   &:hover {
     transform: translateY(-8px) scale(1.03);
-    box-shadow: 
+    box-shadow: ${props => props.isEgg ? '0 8px 16px rgba(0, 0, 0, 0.2)' : `
       0 8px 16px rgba(0, 0, 0, 0.2),
-      inset 0 1px 5px rgba(255, 255, 255, 0.4);
+      inset 0 1px 5px rgba(255, 255, 255, 0.4)`};
     z-index: 5;
   }
   
@@ -42,7 +44,7 @@ const SlotContainer = styled.div`
     width: 100%;
     height: 100%;
     border-radius: 12px;
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.15);
+    box-shadow: ${props => props.isEgg ? 'none' : 'inset 0 0 10px rgba(0, 0, 0, 0.15)'};
     pointer-events: none;
   }
   
@@ -54,32 +56,46 @@ const SlotContainer = styled.div`
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23000000' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
-    opacity: 0.4;
+    background-image: ${props => props.isEgg ? 'none' : `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23000000' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E")`};
+    opacity: ${props => props.isEgg ? '1' : '0.4'};
     pointer-events: none;
   }
 `;
 
 const ObjectImageContainer = styled.div`
   position: relative;
-  width: 80%;
-  height: 100px;
+  width: ${props => props.isEgg ? '100%' : '80%'};
+  height: ${props => props.isEgg ? '100%' : '100px'};
   display: flex;
   justify-content: center;
   align-items: center;
   transition: all 0.3s ease;
   
   ${SlotContainer}:hover & {
-    transform: translateY(-5px) scale(1.1);
+    transform: ${props => props.isEgg ? 'scale(1.05)' : 'translateY(-5px) scale(1.1)'};
   }
 `;
 
 const ObjectImage = styled.img`
   max-width: 100%;
-  max-height: 100px;
+  max-height: ${props => props.isEgg ? '100%' : '100px'};
+  width: ${props => props.isEgg ? '100%' : 'auto'};
+  height: ${props => props.isEgg ? '100%' : 'auto'};
   object-fit: contain;
   transition: all 0.3s ease;
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+`;
+
+const EggImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.2));
+  
+  ${SlotContainer}:hover & {
+    transform: scale(1.08);
+  }
 `;
 
 const PlaceholderImage = styled.div`
@@ -112,9 +128,12 @@ const PlaceholderImage = styled.div`
   }
 `;
 
-const Slot = ({ object }) => {
+const Slot = ({ object, slotClassName }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { name, image_url, opened_image_url, description } = object;
+  
+  // Check if this is slot-1 to show the robin egg
+  const isEgg = slotClassName === 'slot-1';
   
   const handleClick = () => {
     console.log('Slot clicked:', name);
@@ -131,32 +150,40 @@ const Slot = ({ object }) => {
 
   return (
     <>
-      <SlotContainer onClick={handleClick}>
-        <ObjectImageContainer>
-          {imageSource ? (
-            <ObjectImage 
-              src={imageSource} 
-              alt={name} 
-              onError={(e) => {
-                console.error('Error loading image:', imageSource);
-                e.target.style.display = 'none';
-                e.target.parentNode.innerHTML = `<div style="width:80px;height:80px;background:#d1c3a8;border-radius:50%;display:flex;justify-content:center;align-items:center;">${name.charAt(0)}</div>`;
-              }}
-            />
-          ) : (
-            <PlaceholderImage>
-              {name.charAt(0)}
-            </PlaceholderImage>
-          )}
-        </ObjectImageContainer>
+      <SlotContainer onClick={handleClick} isEgg={isEgg}>
+        {isEgg ? (
+          <EggImage 
+            src="/images/robin-egg-1.jpg" 
+            alt="Robin's Egg" 
+          />
+        ) : (
+          <ObjectImageContainer isEgg={isEgg}>
+            {imageSource ? (
+              <ObjectImage 
+                src={imageSource} 
+                alt={name} 
+                isEgg={isEgg}
+                onError={(e) => {
+                  console.error('Error loading image:', imageSource);
+                  e.target.style.display = 'none';
+                  e.target.parentNode.innerHTML = `<div style="width:80px;height:80px;background:#d1c3a8;border-radius:50%;display:flex;justify-content:center;align-items:center;">${name.charAt(0)}</div>`;
+                }}
+              />
+            ) : (
+              <PlaceholderImage>
+                {name.charAt(0)}
+              </PlaceholderImage>
+            )}
+          </ObjectImageContainer>
+        )}
       </SlotContainer>
       
       {isModalOpen && (
         <Modal 
           onClose={handleCloseModal}
-          imageUrl={openedImageSource}
-          title={name}
-          description={description}
+          imageUrl={isEgg ? "/images/robin-egg-1.jpg" : openedImageSource}
+          title={isEgg ? "Robin's Egg" : name}
+          description={isEgg ? "A beautiful robin's egg with a speckled blue shell." : description}
         />
       )}
     </>

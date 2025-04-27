@@ -151,6 +151,7 @@ const Box = () => {
                   <Slot 
                     object={object} 
                     isBiggerSlot={index === 6} // Center slot is bigger
+                    slotClassName={slotPositions[index]}
                   />
                 </SlotPosition>
               ))}
@@ -185,6 +186,7 @@ const Box = () => {
                 <Slot 
                   object={object} 
                   isBiggerSlot={index === 6} // Center slot is bigger
+                  slotClassName={slotPositions[index]}
                 />
               </SlotPosition>
             ))
