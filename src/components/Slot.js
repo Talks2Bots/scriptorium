@@ -150,7 +150,7 @@ const Slot = ({ object, slotClassName }) => {
   const openedImageSource = opened_image_url ? getImageUrl(opened_image_url) : null;
 
   // Using direct image path to avoid possible Supabase issues
-  const eggImagePath = '/images/robin-egg-1.jpg';
+  const eggImagePath = '/images/robin-egg-2.jpg?v=2';
 
   return (
     <>
