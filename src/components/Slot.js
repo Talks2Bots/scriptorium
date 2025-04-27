@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import Modal from './Modal';
-import { getImageUrl } from '../utils/supabase';
 
 const SlotContainer = styled.div`
   width: 100%;
@@ -22,24 +21,6 @@ const ObjectImage = styled.img`
   height: 100%;
   object-fit: contain;
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
-`;
-
-const PlaceholderImage = styled.div`
-  width: 100%;
-  height: 100%;
-  background-color: #d1c3a8;
-  background-image: radial-gradient(
-    circle at center,
-    #e0d2b4 0%,
-    #d1c3a8 70%
-  );
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: 'EB Garamond', Georgia, serif;
-  font-size: 28px;
-  color: #2a5674;
 `;
 
 const Slot = ({ object, slotClassName }) => {
