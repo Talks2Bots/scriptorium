@@ -32,45 +32,45 @@ const BoxImage = styled.div`
 // Slot positioning
 const SlotPosition = styled.div`
   position: absolute;
-  width: ${props => props.className === 'slot-1' ? '40%' : '15%'};
-  height: ${props => props.className === 'slot-1' ? '40%' : '15%'};
+  width: ${props => props.className === 'slot-1' ? '30%' : '15%'};
+  height: ${props => props.className === 'slot-1' ? '30%' : '15%'};
   transform: translate(-50%, -50%);
   
   &.slot-1 {
-    top: 23%;
+    top: 33%;
     left: 50%;
   }
   
   &.slot-2 {
-    top: 38%;
-    left: 78%;
+    top: 42%;
+    left: 72%;
   }
   
   &.slot-3 {
-    top: 70%;
-    left: 70%;
+    top: 63%;
+    left: 68%;
   }
   
   &.slot-4 {
-    top: 83%;
+    top: 75%;
     left: 50%;
   }
   
   &.slot-5 {
-    top: 70%;
-    left: 30%;
+    top: 63%;
+    left: 32%;
   }
   
   &.slot-6 {
-    top: 38%;
-    left: 22%;
+    top: 42%;
+    left: 28%;
   }
   
   &.slot-center {
-    top: 53%;
+    top: 50%;
     left: 50%;
-    width: 20%;
-    height: 20%;
+    width: 18%;
+    height: 18%;
   }
 `;
 
