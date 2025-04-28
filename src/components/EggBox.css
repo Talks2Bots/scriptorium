@@ -4,6 +4,7 @@
   max-width: 98vw;
   min-width: 240px;
   margin: 40px auto;
+  box-shadow: 0 8px 40px 0 rgba(0,0,0,0.18), 0 0 0 12px rgba(80,60,30,0.08);
 }
 
 .layer {
