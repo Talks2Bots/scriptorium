@@ -1,18 +1,18 @@
 import React from "react";
 import "./EggBox.css";
 
-// base box JPG in /public  ➜  reference with plain URL
-const BOX_SRC = "/base_box.jpg";
+// base box JPG in /public/images  ➜  reference with /images/ URL
+const BOX_SRC = "/images/base_box.jpg";
 
-// if your egg PNGs live in /public, use plain URLs:
+// if your egg PNGs live in /public/images, use /images/ URLs:
 const IMGS = [
-  "/img1.png",
-  "/img2.png",
-  "/img3.png",
-  "/img4.png",
-  "/img5.png",
-  "/img6.png",
-  "/img7.png",
+  "/images/img1.png",
+  "/images/img2.png",
+  "/images/img3.png",
+  "/images/img4.png",
+  "/images/img5.png",
+  "/images/img6.png",
+  "/images/img7.png",
 ];
 
 // Positions reordered: farthest eggs first, front eggs last
