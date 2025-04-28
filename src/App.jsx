@@ -1,5 +1,5 @@
 import React from "react";
-import EggBox from "./EggBox";
+import EggBox from "./components/EggBox";
 
 export default function App() {
   return (
