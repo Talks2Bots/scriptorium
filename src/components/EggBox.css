@@ -1,0 +1,17 @@
+.boxWrap {
+  position: relative;
+  width: 60vmin;
+  margin: 40px auto;
+}
+
+.layer {
+  width: 100%;
+  display: block;
+}
+
+.slot {
+  position: absolute;
+  width: 23%;              /* egg diameter  */
+  transform: translate(-50%, -68%); /* egg depth   */
+  pointer-events: none;
+} 
