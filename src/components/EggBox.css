@@ -1,6 +1,8 @@
 .boxWrap {
   position: relative;
   width: 60vmin;
+  max-width: 98vw;
+  min-width: 240px;
   margin: 40px auto;
 }
 
@@ -14,4 +16,14 @@
   width: 23%;              /* egg diameter  */
   transform: translate(-50%, -68%); /* egg depth   */
   pointer-events: none;
+}
+
+@media (max-width: 500px) {
+  .boxWrap {
+    width: 95vw;
+    min-width: 0;
+  }
+  .slot {
+    width: 28%; /* slightly larger eggs for small screens */
+  }
 } 
