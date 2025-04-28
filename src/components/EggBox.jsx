@@ -1,43 +1,58 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./EggBox.css";
+import { supabase } from "../supabaseClient";
 
-// base box JPG in /public/images  ➜  reference with /images/ URL
-const BOX_SRC = "/images/base_box.jpg";
-
-// if your egg PNGs live in /public/images, use /images/ URLs:
-const IMGS = [
-  "/images/img1.png",
-  "/images/img2.png",
-  "/images/img3.png",
-  "/images/img4.png",
-  "/images/img5.png",
-  "/images/img6.png",
-  "/images/img7.png",
-];
-
-// Positions reordered: farthest eggs first, front eggs last
-const CUP_POS = [
-    {x:49.1, y:34.7},  // top middle egg
-    {x:69.9, y:41.8},  // top right egg
-    {x:28.8, y:42.3},  // top left egg
-    {x:71.0, y:55.5},  // mid right egg
-    {x:49.8, y:48.7},  // mid center egg
-    {x:32, y:57.6},  // mid left egg
-    {x:51.8, y:63.3},  // bottom center egg
-  ];
-  
 export default function EggBox() {
+  const [objects, setObjects] = useState([]);
+  const [box, setBox] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
   const [modalImg, setModalImg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleEggClick = async (i) => {
+  // Fetch the first box and its objects on mount
+  useEffect(() => {
+    const fetchBoxAndObjects = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        // Fetch the first box (or you can add selection logic)
+        const { data: boxes, error: boxError } = await supabase
+          .from("boxes")
+          .select("*")
+          .order("created_at", { ascending: true })
+          .limit(1);
+        if (boxError) throw boxError;
+        if (!boxes || boxes.length === 0) throw new Error("No boxes found.");
+        setBox(boxes[0]);
+
+        // Fetch the 7 objects for this box, ordered by 'order'
+        const { data: objs, error: objError } = await supabase
+          .from("objects")
+          .select("*")
+          .eq("box_id", boxes[0].id)
+          .order("order", { ascending: true });
+        if (objError) throw objError;
+        setObjects(objs);
+      } catch (e) {
+        setError(e.message || "Failed to load box data.");
+      }
+      setLoading(false);
+    };
+    fetchBoxAndObjects();
+  }, []);
+
+  const handleEggClick = async (obj) => {
     setModalOpen(true);
-    setModalImg(IMGS[i]);
+    setModalImg(obj.image_url);
     setLoading(true);
+    setModalText("");
     try {
-      const res = await fetch(`/texts/text${i + 1}.txt`);
+      // Fetch the text file from Supabase Storage (public URL)
+      const { publicURL, error: urlError } = supabase.storage.from('object-texts').getPublicUrl(obj.text_url.replace(/^object-texts\//, ""));
+      if (urlError) throw urlError;
+      const res = await fetch(publicURL);
       const text = await res.text();
       setModalText(text);
     } catch (e) {
@@ -53,22 +68,40 @@ export default function EggBox() {
     setLoading(false);
   };
 
+  if (loading && !modalOpen) return <div className="boxWrap">Loading...</div>;
+  if (error) return <div className="boxWrap">{error}</div>;
+  if (!box || objects.length === 0) return <div className="boxWrap">No box data found.</div>;
+
+  // For demo, use a static box image. You can add a box_image_url field to boxes if you want per-box images.
+  const BOX_SRC = "/images/base_box.jpg";
+
+  // Use the same CUP_POS as before, or store positions in the DB if you want per-box layouts
+  const CUP_POS = [
+    { x: 49.1, y: 34.7 },
+    { x: 69.9, y: 41.8 },
+    { x: 28.8, y: 42.3 },
+    { x: 71.0, y: 55.5 },
+    { x: 49.8, y: 48.7 },
+    { x: 32.0, y: 57.6 },
+    { x: 51.8, y: 63.3 },
+  ];
+
   return (
     <div className="boxWrap">
       <img src={BOX_SRC} className="layer" alt="velvet box" />
 
-      {IMGS.map((src, i) => (
+      {objects.slice(0, 7).map((obj, i) => (
         <img
-          key={i}
-          src={src}
+          key={obj.id}
+          src={supabase.storage.from('object-images').getPublicUrl(obj.image_url.replace(/^object-images\//, "")).publicURL}
           className="slot"
           style={{
             left: `${CUP_POS[i].x}%`,
             top: `${CUP_POS[i].y}%`,
-            zIndex: i,               // ensures lower eggs overlap upper
+            zIndex: i,
           }}
-          alt={`egg-${i}`}
-          onClick={() => handleEggClick(i)}
+          alt={obj.title || `egg-${i+1}`}
+          onClick={() => handleEggClick(obj)}
         />
       ))}
 
