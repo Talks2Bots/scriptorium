@@ -15,7 +15,7 @@
   position: absolute;
   width: 23%;              /* egg diameter  */
   transform: translate(-50%, -68%); /* egg depth   */
-  pointer-events: none;
+  cursor: pointer;
 }
 
 @media (max-width: 500px) {
@@ -25,5 +25,54 @@
   }
   .slot {
     width: 28%; /* slightly larger eggs for small screens */
+  }
+}
+
+/* Modal styles */
+.egg-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.egg-modal {
+  background: #fff;
+  border-radius: 16px;
+  max-width: 90vw;
+  width: 400px;
+  max-height: 80vh;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  overflow-y: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.egg-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #888;
+  cursor: pointer;
+}
+.egg-modal-text {
+  font-size: 1.1rem;
+  color: #222;
+  text-align: center;
+  margin-top: 1.5rem;
+  white-space: pre-line;
+}
+@media (max-width: 600px) {
+  .egg-modal {
+    width: 98vw;
+    min-width: 0;
+    padding: 1.2rem 0.5rem;
   }
 } 

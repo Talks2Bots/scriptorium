@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./EggBox.css";
 
 // base box JPG in /public/images  ➜  reference with /images/ URL
@@ -27,6 +27,32 @@ const CUP_POS = [
   ];
   
 export default function EggBox() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState("");
+  const [modalImg, setModalImg] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleEggClick = async (i) => {
+    setModalOpen(true);
+    setModalImg(IMGS[i]);
+    setLoading(true);
+    try {
+      const res = await fetch(`/texts/text${i + 1}.txt`);
+      const text = await res.text();
+      setModalText(text);
+    } catch (e) {
+      setModalText("Failed to load text.");
+    }
+    setLoading(false);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setModalText("");
+    setModalImg("");
+    setLoading(false);
+  };
+
   return (
     <div className="boxWrap">
       <img src={BOX_SRC} className="layer" alt="velvet box" />
@@ -42,8 +68,21 @@ export default function EggBox() {
             zIndex: i,               // ensures lower eggs overlap upper
           }}
           alt={`egg-${i}`}
+          onClick={() => handleEggClick(i)}
         />
       ))}
+
+      {modalOpen && (
+        <div className="egg-modal-overlay" onClick={closeModal}>
+          <div className="egg-modal" onClick={e => e.stopPropagation()}>
+            <button className="egg-modal-close" onClick={closeModal}>&times;</button>
+            {modalImg && <img src={modalImg} alt="egg" style={{maxWidth: '120px', margin: '0 auto'}} />}
+            <div className="egg-modal-text">
+              {loading ? "Loading..." : modalText}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
