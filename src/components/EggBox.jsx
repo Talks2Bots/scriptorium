@@ -336,9 +336,106 @@ export default function EggBox() {
           )}
         </div>
         
+        <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc', backgroundColor: '#f0f8ff'}}>
+          <h3>Storage Permission Tests</h3>
+          <p>These tests can help identify Supabase bucket permission issues:</p>
+          
+          <div style={{marginTop: '10px'}}>
+            <h4>Test 1: Direct URL Access</h4>
+            <p>Try opening these directly in a new tab to test public permissions:</p>
+            {[0,1,2,3].map(index => {
+              const testPath = index === 0 
+                ? `${boxFolder}/box-base.jpg` 
+                : `${boxFolder}/img${index}.png`;
+              
+              const { publicURL } = supabase
+                .storage
+                .from('object-images')
+                .getPublicUrl(testPath);
+              
+              return (
+                <div key={index} style={{margin: '5px 0', padding: '5px', border: '1px solid #ddd'}}>
+                  <p style={{fontSize: '12px', marginBottom: '5px'}}><strong>File: </strong>{testPath}</p>
+                  <p style={{fontSize: '12px', marginBottom: '5px', wordBreak: 'break-all'}}>
+                    <strong>Full URL: </strong>
+                    <a href={publicURL} target="_blank" rel="noopener noreferrer">{publicURL}</a>
+                  </p>
+                  <button 
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(publicURL);
+                        if (response.ok) {
+                          alert(`Success! The URL is accessible (${response.status})`);
+                        } else {
+                          alert(`Error! Status: ${response.status} - ${response.statusText}`);
+                        }
+                      } catch (error) {
+                        alert(`Fetch error: ${error.message}`);
+                      }
+                    }}
+                    style={{padding: '5px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px'}}
+                  >
+                    Test URL Fetch
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+          
+          <div style={{marginTop: '20px'}}>
+            <h4>Test 2: Bucket Policy</h4>
+            <p>Your Supabase storage bucket policies should have these settings:</p>
+            <pre style={{backgroundColor: '#f5f5f5', padding: '10px', overflow: 'auto'}}>
+{`FOR bucket_id = 'object-images'
+TO "anon"
+USING ( true )
+WITH CHECK ( true )`}
+            </pre>
+            <p><strong>Note:</strong> Check your Supabase dashboard: Storage → Policies → object-images bucket</p>
+          </div>
+          
+          <div style={{marginTop: '20px'}}>
+            <h4>Test 3: Manual Image Embedding Test</h4>
+            <p>This bypasses React's image handling to test direct HTML embedding:</p>
+            
+            <div style={{marginTop: '10px', padding: '10px', border: '1px dashed #ccc'}}>
+              <p>Box Base Image (Manual HTML):</p>
+              <div dangerouslySetInnerHTML={{
+                __html: boxImageUrl ? 
+                  `<img src="${boxImageUrl}" alt="Direct HTML Test" style="max-width:150px; border:1px solid blue;" />` :
+                  "<p>No URL available</p>"
+              }} />
+              
+              <p style={{marginTop: '10px'}}>Object 1 Image (Manual HTML):</p>
+              <div dangerouslySetInnerHTML={{
+                __html: supabase.storage.from('object-images').getPublicUrl(`${boxFolder}/img1.png`).publicURL ? 
+                  `<img src="${supabase.storage.from('object-images').getPublicUrl(`${boxFolder}/img1.png`).publicURL}" 
+                        alt="Direct HTML Test" style="max-width:150px; border:1px solid blue;" />` :
+                  "<p>No URL available</p>"
+              }} />
+            </div>
+          </div>
+        </div>
+        
         <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc'}}>
           <h3>Testing Image Loading</h3>
-          <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
+          <div>
+            <p><strong>Basic authentication test:</strong></p>
+            <button
+              onClick={async () => {
+                const { data, error } = await supabase.auth.getSession();
+                console.log("Current session:", data, error);
+                alert(error 
+                  ? `Error: ${error.message}` 
+                  : `Session: ${data?.session ? "Active" : "None"}`);
+              }}
+              style={{padding: '5px 10px', margin: '5px 0', backgroundColor: '#2196F3', color: 'white', border: 'none', borderRadius: '4px'}}
+            >
+              Check Authentication
+            </button>
+          </div>
+          
+          <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '15px'}}>
             <div>
               <p>Box Base Image:</p>
               <img 
