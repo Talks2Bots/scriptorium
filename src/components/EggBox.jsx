@@ -18,6 +18,8 @@ export default function EggBox() {
   const [buckets, setBuckets] = useState([]);
   const [textFolderContents, setTextFolderContents] = useState([]);
   const [detailedError, setDetailedError] = useState(null);
+  const [isBoxOpen, setIsBoxOpen] = useState(false);
+  const [closedBoxImageUrl, setClosedBoxImageUrl] = useState("");
   const [supabaseInfo] = useState({
     url: process.env.REACT_APP_SUPABASE_URL || "Not set",
     hasKey: process.env.REACT_APP_SUPABASE_ANON_KEY ? "Key is set" : "Key is missing",
@@ -184,9 +186,13 @@ export default function EggBox() {
         
         // Get the box base image URL using direct URL construction instead of Supabase
         const boxImageURL = getDirectStorageUrl('object-images', `${folderName}/box-base.jpg`);
-        console.log("Box image URL:", boxImageURL);
-        
+        debugLog("Box image URL:", boxImageURL);
         setBoxImageUrl(boxImageURL);
+        
+        // Get the closed box image URL
+        const closedBoxImageURL = getDirectStorageUrl('object-images', `${folderName}/closed-box.png`);
+        debugLog("Closed box image URL:", closedBoxImageURL);
+        setClosedBoxImageUrl(closedBoxImageURL);
       } catch (e) {
         console.error("General error in fetchBoxData:", e);
         setError(e.message || "Failed to load box data.");
@@ -298,11 +304,64 @@ export default function EggBox() {
     }
   }, []);
 
+  // Toggle box open/closed state
+  const toggleBoxState = () => {
+    setIsBoxOpen(prev => !prev);
+  };
+
   // Always show the debug page
   if (debugMode) {
     return (
       <div style={{padding: '20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'sans-serif'}}>
         <h2>Scriptorium Debug Information</h2>
+        
+        <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc', backgroundColor: '#f7f7f7'}}>
+          <h3>Box State Controls</h3>
+          <p>Current State: <strong>{isBoxOpen ? 'Open' : 'Closed'}</strong></p>
+          <button 
+            onClick={toggleBoxState}
+            style={{
+              padding: '8px 15px', 
+              background: isBoxOpen ? '#dc3545' : '#28a745', 
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              marginRight: '10px'
+            }}
+          >
+            {isBoxOpen ? 'Close Box' : 'Open Box'}
+          </button>
+          <div style={{marginTop: '10px'}}>
+            <p><strong>Box Images:</strong></p>
+            <div style={{display: 'flex', gap: '15px', marginTop: '8px'}}>
+              <div>
+                <p>Closed Box:</p>
+                <img 
+                  src={closedBoxImageUrl} 
+                  alt="Closed Box" 
+                  style={{
+                    maxWidth: '100px', 
+                    border: '1px solid #ccc',
+                    opacity: isBoxOpen ? 0.5 : 1
+                  }}
+                />
+              </div>
+              <div>
+                <p>Open Box:</p>
+                <img 
+                  src={boxImageUrl} 
+                  alt="Open Box" 
+                  style={{
+                    maxWidth: '100px', 
+                    border: '1px solid #ccc',
+                    opacity: isBoxOpen ? 1 : 0.5
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
         
         <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc', backgroundColor: '#f7f7f7'}}>
           <h3>Cache Control</h3>
@@ -848,41 +907,59 @@ console.log(message);
         Debug
       </button>
       
-      {boxImageUrl ? (
-        <img 
-          src={boxImageUrl} 
-          className="layer" 
-          alt="velvet box" 
-        />
-      ) : (
-        <div className="loading-box">Loading box image...</div>
-      )}
-
-      {/* Render the 7 object slots using the direct URL construction */}
-      {CUP_POS.map((position, i) => {
-        const imagePath = `${boxFolder}/img${i+1}.png`;
-        // Use direct URL construction instead of Supabase getPublicUrl
-        const imageUrl = getDirectStorageUrl('object-images', imagePath);
-        
-        // Add debugging console log
-        debugLog(`Rendering object ${i+1} from URL:`, imageUrl);
-        
-        return (
-          <img
-            key={i}
-            src={imageUrl}
-            className="slot"
-            style={{
-              left: `${position.x}%`,
-              top: `${position.y}%`,
-              zIndex: i,
-            }}
-            alt={`Object ${i+1}`}
-            onClick={() => handleObjectClick(i)}
-            onError={(e) => debugMode && console.error(`Failed to load object ${i+1}`, e)}
+      {/* Show closed or open box based on state */}
+      {!isBoxOpen ? (
+        // Closed box view
+        <div className="closed-box-container">
+          <img 
+            src={closedBoxImageUrl} 
+            className="layer" 
+            alt="closed box" 
+            onClick={toggleBoxState} 
           />
-        );
-      })}
+          <div className="box-interaction-hint">Click to open</div>
+        </div>
+      ) : (
+        // Open box view (existing content)
+        <>
+          <img 
+            src={boxImageUrl} 
+            className="layer" 
+            alt="velvet box" 
+          />
+
+          {/* Render the 7 object slots using the direct URL construction */}
+          {CUP_POS.map((position, i) => {
+            const imagePath = `${boxFolder}/img${i+1}.png`;
+            // Use direct URL construction instead of Supabase getPublicUrl
+            const imageUrl = getDirectStorageUrl('object-images', imagePath);
+            
+            // Add debugging console log
+            debugLog(`Rendering object ${i+1} from URL:`, imageUrl);
+            
+            return (
+              <img
+                key={i}
+                src={imageUrl}
+                className="slot"
+                style={{
+                  left: `${position.x}%`,
+                  top: `${position.y}%`,
+                  zIndex: i,
+                }}
+                alt={`Object ${i+1}`}
+                onClick={() => handleObjectClick(i)}
+                onError={(e) => debugMode && console.error(`Failed to load object ${i+1}`, e)}
+              />
+            );
+          })}
+          
+          {/* Lid icon to close the box */}
+          <div className="lid-icon" onClick={toggleBoxState} title="Close box">
+            <span className="lid-icon-text">Close Box</span>
+          </div>
+        </>
+      )}
 
       {modalOpen && (
         <div className="egg-modal-overlay" onClick={closeModal}>

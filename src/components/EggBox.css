@@ -170,4 +170,85 @@
 
 .egg-modal-text th {
   background-color: #f5f5f5;
+}
+
+/* Add styles for the closed box and lid icon at the end of the file */
+
+/* Closed box container with interaction hint */
+.closed-box-container {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.closed-box-container:hover {
+  transform: scale(1.02);
+}
+
+.box-interaction-hint {
+  position: absolute;
+  bottom: 10%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: white;
+  font-size: 1.2rem;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 8px;
+  border-radius: 20px;
+  width: 40%;
+  margin: 0 auto;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.closed-box-container:hover .box-interaction-hint {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Lid icon for closing the box */
+.lid-icon {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background-color: rgba(110, 85, 55, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lid-icon:hover {
+  background-color: rgba(140, 105, 65, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.lid-icon:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+}
+
+.lid-icon::before {
+  content: '📦';
+  margin-right: 5px;
+  font-size: 1.1rem;
+}
+
+/* Transition animations for opening/closing */
+.boxWrap img.layer {
+  transition: opacity 0.4s ease;
+}
+
+.boxWrap .slot {
+  transition: opacity 0.5s ease, transform 0.5s ease;
 } 
