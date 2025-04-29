@@ -17,6 +17,11 @@ export default function EggBox() {
   const [buckets, setBuckets] = useState([]);
   const [textFolderContents, setTextFolderContents] = useState([]);
   const [detailedError, setDetailedError] = useState(null);
+  const [supabaseInfo, setSupabaseInfo] = useState({
+    url: process.env.REACT_APP_SUPABASE_URL || "Not set",
+    hasKey: process.env.REACT_APP_SUPABASE_ANON_KEY ? "Key is set" : "Key is missing",
+    fullInfo: true
+  });
 
   // Fixed positions for the 7 objects
   const CUP_POS = [
@@ -37,18 +42,23 @@ export default function EggBox() {
       setDetailedError(null);
       
       try {
+        console.log("Supabase Client URL:", process.env.REACT_APP_SUPABASE_URL);
+        console.log("Supabase Key Available:", process.env.REACT_APP_SUPABASE_ANON_KEY ? "Yes" : "No");
+        
         // Get all available buckets for debugging
         const { data: bucketsData, error: bucketsError } = await supabase
           .storage
           .listBuckets();
         
         if (bucketsError) {
+          console.error("Bucket listing error:", bucketsError);
           setDetailedError({
             type: "buckets",
             message: bucketsError.message,
             details: bucketsError.details
           });
         } else {
+          console.log("Buckets found:", bucketsData);
           setBuckets(bucketsData || []);
         }
         
@@ -60,6 +70,7 @@ export default function EggBox() {
           .limit(1);
         
         if (boxError) {
+          console.error("Box fetch error:", boxError);
           setDetailedError({
             type: "database",
             message: boxError.message,
@@ -71,11 +82,13 @@ export default function EggBox() {
         if (!boxes || boxes.length === 0) throw new Error("No boxes found.");
         
         const currentBox = boxes[0];
+        console.log("Box data:", currentBox);
         setBox(currentBox);
         
         // Get the folder name from the box record
         const folderName = currentBox.folder_name || "dickinson-birds";
         setBoxFolder(folderName);
+        console.log("Using folder name:", folderName);
         
         // First, list the folder contents to see what's available
         const { data: files, error: listError } = await supabase
@@ -84,6 +97,7 @@ export default function EggBox() {
           .list(folderName);
         
         if (listError) {
+          console.error("Image folder listing error:", listError);
           setDetailedError({
             type: "image-folder-listing",
             message: listError.message,
@@ -93,6 +107,7 @@ export default function EggBox() {
           throw new Error(`Could not list image folder contents: ${listError.message}`);
         }
         
+        console.log("Files in image folder:", files);
         setFolderContents(files || []);
 
         // Also check the text folder to make sure it exists
@@ -102,6 +117,7 @@ export default function EggBox() {
           .list(folderName);
         
         if (textListError) {
+          console.error("Text folder listing error:", textListError);
           setDetailedError({
             type: "text-folder-listing",
             message: textListError.message,
@@ -109,6 +125,23 @@ export default function EggBox() {
             folderPath: folderName
           });
           console.log("Warning: Could not list text folder contents");
+          
+          // Try to create the folder in object-texts if it doesn't exist
+          try {
+            console.log("Attempting to create text folder:", folderName);
+            const { data: createData, error: createError } = await supabase
+              .storage
+              .from('object-texts')
+              .upload(`${folderName}/.emptyFolderPlaceholder`, new Blob(['']));
+              
+            if (createError) {
+              console.error("Failed to create text folder:", createError);
+            } else {
+              console.log("Successfully created text folder placeholder");
+            }
+          } catch (createFolderError) {
+            console.error("Create folder attempt failed:", createFolderError);
+          }
         } else {
           setTextFolderContents(textFiles || []);
           console.log(`Found ${textFiles?.length || 0} text files in ${folderName}`);
@@ -121,16 +154,20 @@ export default function EggBox() {
           .getPublicUrl(`${folderName}/box-base.jpg`);
         
         if (urlError) {
+          console.error("Box image URL error:", urlError);
           setDetailedError({
             type: "image-url",
             message: urlError.message,
             details: urlError.details,
             path: `${folderName}/box-base.jpg`
           });
+        } else {
+          console.log("Box image URL:", boxImageURL);
         }
         
         setBoxImageUrl(boxImageURL);
       } catch (e) {
+        console.error("General error in fetchBoxData:", e);
         setError(e.message || "Failed to load box data.");
         if (!detailedError) {
           setDetailedError({
@@ -144,7 +181,6 @@ export default function EggBox() {
     };
     
     fetchBoxData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleObjectClick = async (index) => {
@@ -215,6 +251,13 @@ export default function EggBox() {
     return (
       <div style={{padding: '20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'sans-serif'}}>
         <h2>Scriptorium Debug Information</h2>
+        
+        <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc', backgroundColor: '#f7f7f7'}}>
+          <h3>Supabase Configuration</h3>
+          <p><strong>Supabase URL:</strong> {supabaseInfo.url}</p>
+          <p><strong>Supabase Key Status:</strong> {supabaseInfo.hasKey}</p>
+          <p><strong>Environment Variables Present:</strong> {process.env.REACT_APP_SUPABASE_URL && process.env.REACT_APP_SUPABASE_ANON_KEY ? "Both URL and key are set" : "Missing one or both variables"}</p>
+        </div>
         
         <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc'}}>
           <h3>Box Information</h3>
