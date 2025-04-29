@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import ReactMarkdown from 'react-markdown';
 import "./EggBox.css";
 import { supabase } from "../supabaseClient";
 
@@ -205,7 +206,7 @@ export default function EggBox() {
     try {
       // Construct URLs for image and text based on the folder and index
       const imagePath = `${boxFolder}/img${fileIndex}.png`;
-      const textPath = `${boxFolder}/text${fileIndex}.txt`;
+      const textPath = `${boxFolder}/text${fileIndex}.md`;
       
       // Use direct URL construction instead of Supabase getPublicUrl
       const imageURL = getDirectStorageUrl('object-images', imagePath);
@@ -220,10 +221,18 @@ export default function EggBox() {
         debugLog(`Fetching text from URL: ${textURL}`);
         const res = await fetch(textURL);
         if (!res.ok) {
-          throw new Error(`HTTP error ${res.status}`);
+          // If .md file is not found, try .txt as fallback for backward compatibility
+          const txtRes = await fetch(getDirectStorageUrl('object-texts', `${boxFolder}/text${fileIndex}.txt`));
+          if (txtRes.ok) {
+            const txtContent = await txtRes.text();
+            setModalText(txtContent);
+          } else {
+            throw new Error(`HTTP error ${res.status}`);
+          }
+        } else {
+          const markdownContent = await res.text();
+          setModalText(markdownContent);
         }
-        const text = await res.text();
-        setModalText(text);
       } catch (fetchError) {
         console.error(`Error fetching text: ${fetchError.message}`);
         setModalText(`Could not load text for this item. Error: ${fetchError.message}`);
@@ -650,17 +659,56 @@ WITH CHECK ( true )`}
           <h3>Testing Text Files</h3>
           <div>
             {[1,2,3,4,5,6,7].map(index => {
-              const textPath = `${boxFolder}/text${index}.txt`;
-              const publicURL = getDirectStorageUrl('object-texts', textPath);
+              const mdPath = `${boxFolder}/text${index}.md`;
+              const txtPath = `${boxFolder}/text${index}.txt`;
+              const mdUrl = getDirectStorageUrl('object-texts', mdPath);
+              const txtUrl = getDirectStorageUrl('object-texts', txtPath);
               
               return (
                 <div key={index} style={{marginBottom: '10px', padding: '5px', border: '1px solid #eee'}}>
                   <p>Text {index}:</p>
-                  <p style={{fontSize: '10px'}}>{textPath}</p>
-                  <p><a href={publicURL} target="_blank" rel="noopener noreferrer">Open Text URL</a></p>
+                  <p style={{fontSize: '10px'}}>{mdPath} <span style={{color: 'green'}}>(preferred)</span></p>
+                  <p><a href={mdUrl} target="_blank" rel="noopener noreferrer">Open Markdown URL</a></p>
+                  <p style={{fontSize: '10px', marginTop: '5px'}}>{txtPath} <span style={{color: 'orange'}}>(fallback)</span></p>
+                  <p><a href={txtUrl} target="_blank" rel="noopener noreferrer">Open Text URL</a></p>
+                  <div style={{marginTop: '10px', fontSize: '12px', backgroundColor: '#f8f8f8', padding: '5px', borderRadius: '3px'}}>
+                    <p><strong>Note:</strong> The app will first try to load .md files, then fall back to .txt files if needed.</p>
+                  </div>
                 </div>
               );
             })}
+          </div>
+          
+          <div style={{marginTop: '20px', padding: '10px', backgroundColor: '#e6f7ff', borderRadius: '4px'}}>
+            <h4>Markdown Sample Preview</h4>
+            <div style={{backgroundColor: 'white', padding: '10px', border: '1px solid #ddd', marginTop: '10px'}}>
+              <ReactMarkdown>
+                {`# Sample Markdown
+                
+## This is a heading
+
+This is **bold** text and this is *italic* text.
+
+### Lists
+- Item 1
+- Item 2
+  - Nested item
+
+### Links
+[Visit Supabase](https://supabase.io)
+
+### Code
+\`\`\`
+const message = "Hello World";
+console.log(message);
+\`\`\`
+
+> This is a blockquote that shows how quotes would appear.
+
+![Image description](https://via.placeholder.com/150)
+`}
+              </ReactMarkdown>
+            </div>
           </div>
         </div>
         
@@ -781,7 +829,7 @@ WITH CHECK ( true )`}
               />
             )}
             <div className="egg-modal-text">
-              {loading ? "Loading..." : modalText}
+              {loading ? "Loading..." : <ReactMarkdown>{modalText}</ReactMarkdown>}
             </div>
           </div>
         </div>
