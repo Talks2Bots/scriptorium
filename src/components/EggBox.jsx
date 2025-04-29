@@ -5,6 +5,7 @@ import { supabase } from "../supabaseClient";
 export default function EggBox() {
   const [objects, setObjects] = useState([]);
   const [box, setBox] = useState(null);
+  const [boxImageUrl, setBoxImageUrl] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
   const [modalImg, setModalImg] = useState("");
@@ -26,6 +27,15 @@ export default function EggBox() {
         if (boxError) throw boxError;
         if (!boxes || boxes.length === 0) throw new Error("No boxes found.");
         setBox(boxes[0]);
+        
+        // Get the box base image URL
+        const { publicURL: boxImageURL, error: boxImgError } = supabase
+          .storage
+          .from('object-images')
+          .getPublicUrl('dickinson-birds/box-base.jpg');
+        
+        if (boxImgError) throw boxImgError;
+        setBoxImageUrl(boxImageURL);
 
         // Fetch the 7 objects for this box, ordered by 'order'
         const { data: objs, error: objError } = await supabase
@@ -72,9 +82,6 @@ export default function EggBox() {
   if (error) return <div className="boxWrap">{error}</div>;
   if (!box || objects.length === 0) return <div className="boxWrap">No box data found.</div>;
 
-  // For demo, use a static box image. You can add a box_image_url field to boxes if you want per-box images.
-  const BOX_SRC = "/images/base_box.jpg";
-
   // Use the same CUP_POS as before, or store positions in the DB if you want per-box layouts
   const CUP_POS = [
     { x: 49.1, y: 34.7 },
@@ -88,7 +95,11 @@ export default function EggBox() {
 
   return (
     <div className="boxWrap">
-      <img src={BOX_SRC} className="layer" alt="velvet box" />
+      {boxImageUrl ? (
+        <img src={boxImageUrl} className="layer" alt="velvet box" />
+      ) : (
+        <div className="loading-box">Loading box...</div>
+      )}
 
       {objects.slice(0, 7).map((obj, i) => (
         <img
