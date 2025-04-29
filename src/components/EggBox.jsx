@@ -35,12 +35,14 @@ export default function EggBox() {
     { x: 51.8, y: 63.3 },
   ];
 
-  // Helper function to construct direct storage URLs
+  // Helper function to construct direct storage URLs with cache busting
   const getDirectStorageUrl = useCallback((bucketName, path) => {
     const baseUrl = process.env.REACT_APP_SUPABASE_URL;
     if (!baseUrl) return null;
     
-    return `${baseUrl}/storage/v1/object/public/${bucketName}/${path}`;
+    // Add cache busting parameter with current timestamp
+    const timestamp = new Date().getTime();
+    return `${baseUrl}/storage/v1/object/public/${bucketName}/${path}?t=${timestamp}`;
   }, []);
 
   // Debug console logging helper
@@ -116,11 +118,18 @@ export default function EggBox() {
         setBoxFolder(folderName);
         debugLog("Using folder name:", folderName);
         
+        // Force refresh of Supabase storage listing to avoid caching
+        const listOptions = {
+          limit: 100,
+          offset: 0,
+          sortBy: { column: 'name', order: 'asc' }
+        };
+        
         // First, list the folder contents to see what's available
         const { data: files, error: listError } = await supabase
           .storage
           .from('object-images')
-          .list(folderName);
+          .list(folderName, listOptions);
         
         if (listError) {
           console.error("Image folder listing error:", listError);
@@ -140,7 +149,7 @@ export default function EggBox() {
         const { data: textFiles, error: textListError } = await supabase
           .storage
           .from('object-texts')
-          .list(folderName);
+          .list(folderName, listOptions);
         
         if (textListError) {
           console.error("Text folder listing error:", textListError);
@@ -219,10 +228,26 @@ export default function EggBox() {
       
       try {
         debugLog(`Fetching text from URL: ${textURL}`);
-        const res = await fetch(textURL);
+        // Add cache control headers to the fetch request
+        const res = await fetch(textURL, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        });
         if (!res.ok) {
           // If .md file is not found, try .txt as fallback for backward compatibility
-          const txtRes = await fetch(getDirectStorageUrl('object-texts', `${boxFolder}/text${fileIndex}.txt`));
+          const txtURL = getDirectStorageUrl('object-texts', `${boxFolder}/text${fileIndex}.txt`);
+          const txtRes = await fetch(txtURL, {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            }
+          });
           if (txtRes.ok) {
             const txtContent = await txtRes.text();
             setModalText(txtContent);
@@ -252,6 +277,27 @@ export default function EggBox() {
     setModalTitle("");
   };
 
+  // Add a cache-clearing utility function
+  const clearBrowserCache = useCallback(async () => {
+    if ('caches' in window) {
+      try {
+        const cacheNames = await window.caches.keys();
+        await Promise.all(
+          cacheNames.map(cacheName => {
+            return window.caches.delete(cacheName);
+          })
+        );
+        alert('Browser cache cleared! Refreshing page...');
+        window.location.reload(true);
+      } catch (e) {
+        console.error('Failed to clear cache:', e);
+        alert('Failed to clear cache. Try refreshing manually with Ctrl+F5');
+      }
+    } else {
+      alert('Cache API not supported in this browser. Try refreshing manually with Ctrl+F5');
+    }
+  }, []);
+
   // Always show the debug page
   if (debugMode) {
     return (
@@ -259,6 +305,28 @@ export default function EggBox() {
         <h2>Scriptorium Debug Information</h2>
         
         <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc', backgroundColor: '#f7f7f7'}}>
+          <h3>Cache Control</h3>
+          <p>Having trouble seeing updated content? Try the tools below:</p>
+          <div style={{display: 'flex', gap: '10px', marginTop: '10px'}}>
+            <button 
+              onClick={clearBrowserCache}
+              style={{padding: '10px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer'}}
+            >
+              Clear Browser Cache
+            </button>
+            <button 
+              onClick={() => window.location.reload(true)}
+              style={{padding: '10px', backgroundColor: '#0275d8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer'}}
+            >
+              Force Refresh
+            </button>
+          </div>
+          <p style={{marginTop: '10px', fontSize: '12px', color: '#666'}}>
+            <strong>Note:</strong> All content requests now include cache-busting parameters and headers. The timestamp for current requests is: {new Date().getTime()}
+          </p>
+        </div>
+        
+        <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc'}}>
           <h3>Supabase Configuration</h3>
           <p><strong>Supabase URL:</strong> {supabaseInfo.url}</p>
           <p><strong>Supabase Key Status:</strong> {supabaseInfo.hasKey}</p>
@@ -829,7 +897,17 @@ console.log(message);
               />
             )}
             <div className="egg-modal-text">
-              {loading ? "Loading..." : <ReactMarkdown>{modalText}</ReactMarkdown>}
+              {loading ? "Loading..." : (
+                <ReactMarkdown 
+                  components={{
+                    // Customize paragraph handling to control spacing
+                    p: ({node, ...props}) => <p style={{marginTop: '0.5em', marginBottom: '0.5em'}} {...props} />
+                  }}
+                >
+                  {/* Normalize line endings to prevent spacing issues */}
+                  {modalText.replace(/\r\n/g, '\n')}
+                </ReactMarkdown>
+              )}
             </div>
           </div>
         </div>
