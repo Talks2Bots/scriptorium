@@ -2,6 +2,15 @@ import React, { useState, useEffect } from "react";
 import "./EggBox.css";
 import { supabase } from "../supabaseClient";
 
+// Helper function to create a debug logger
+const createDebugLogger = (isDebugMode) => {
+  return (...args) => {
+    if (isDebugMode) {
+      console.log(...args);
+    }
+  };
+};
+
 export default function EggBox() {
   const [box, setBox] = useState(null);
   const [boxFolder, setBoxFolder] = useState("");
@@ -42,6 +51,9 @@ export default function EggBox() {
     return `${baseUrl}/storage/v1/object/public/${bucketName}/${path}`;
   };
 
+  // Debug console logging helper
+  const debugLog = createDebugLogger(debugMode);
+
   // Check URL for a debug parameter on component mount
   useEffect(() => {
     // Check if there's a debug=true parameter in the URL
@@ -51,13 +63,6 @@ export default function EggBox() {
       console.log("Debug mode enabled via URL parameter");
     }
   }, []);
-
-  // Add debug console logging helper
-  const debugLog = (...args) => {
-    if (debugMode) {
-      console.log(...args);
-    }
-  };
 
   // Fetch the box data on mount
   useEffect(() => {
