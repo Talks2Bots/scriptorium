@@ -14,6 +14,9 @@ export default function EggBox() {
   const [error, setError] = useState("");
   const [folderContents, setFolderContents] = useState([]);
   const [debugMode, setDebugMode] = useState(true);
+  const [buckets, setBuckets] = useState([]);
+  const [textFolderContents, setTextFolderContents] = useState([]);
+  const [detailedError, setDetailedError] = useState(null);
 
   // Fixed positions for the 7 objects
   const CUP_POS = [
@@ -31,7 +34,24 @@ export default function EggBox() {
     const fetchBoxData = async () => {
       setLoading(true);
       setError("");
+      setDetailedError(null);
+      
       try {
+        // Get all available buckets for debugging
+        const { data: bucketsData, error: bucketsError } = await supabase
+          .storage
+          .listBuckets();
+        
+        if (bucketsError) {
+          setDetailedError({
+            type: "buckets",
+            message: bucketsError.message,
+            details: bucketsError.details
+          });
+        } else {
+          setBuckets(bucketsData || []);
+        }
+        
         // Fetch the first box
         const { data: boxes, error: boxError } = await supabase
           .from("boxes")
@@ -39,7 +59,15 @@ export default function EggBox() {
           .order("created_at", { ascending: true })
           .limit(1);
         
-        if (boxError) throw boxError;
+        if (boxError) {
+          setDetailedError({
+            type: "database",
+            message: boxError.message,
+            details: boxError.details
+          });
+          throw boxError;
+        }
+        
         if (!boxes || boxes.length === 0) throw new Error("No boxes found.");
         
         const currentBox = boxes[0];
@@ -55,7 +83,16 @@ export default function EggBox() {
           .from('object-images')
           .list(folderName);
         
-        if (listError) throw new Error("Could not list folder contents");
+        if (listError) {
+          setDetailedError({
+            type: "image-folder-listing",
+            message: listError.message,
+            details: listError.details,
+            folderPath: folderName
+          });
+          throw new Error(`Could not list image folder contents: ${listError.message}`);
+        }
+        
         setFolderContents(files || []);
 
         // Also check the text folder to make sure it exists
@@ -65,20 +102,43 @@ export default function EggBox() {
           .list(folderName);
         
         if (textListError) {
+          setDetailedError({
+            type: "text-folder-listing",
+            message: textListError.message,
+            details: textListError.details,
+            folderPath: folderName
+          });
           console.log("Warning: Could not list text folder contents");
         } else {
+          setTextFolderContents(textFiles || []);
           console.log(`Found ${textFiles?.length || 0} text files in ${folderName}`);
         }
         
         // Get the box base image URL
-        const { publicURL: boxImageURL } = supabase
+        const { publicURL: boxImageURL, error: urlError } = supabase
           .storage
           .from('object-images')
           .getPublicUrl(`${folderName}/box-base.jpg`);
         
+        if (urlError) {
+          setDetailedError({
+            type: "image-url",
+            message: urlError.message,
+            details: urlError.details,
+            path: `${folderName}/box-base.jpg`
+          });
+        }
+        
         setBoxImageUrl(boxImageURL);
       } catch (e) {
         setError(e.message || "Failed to load box data.");
+        if (!detailedError) {
+          setDetailedError({
+            type: "unknown",
+            message: e.message,
+            stack: e.stack
+          });
+        }
       }
       setLoading(false);
     };
@@ -100,29 +160,43 @@ export default function EggBox() {
       const textPath = `${boxFolder}/text${fileIndex}.txt`;
       
       // Get image URL
-      const { publicURL: imageURL } = supabase
+      const { publicURL: imageURL, error: imgError } = supabase
         .storage
         .from('object-images')
         .getPublicUrl(imagePath);
+      
+      if (imgError) {
+        console.error(`Error getting image URL for ${imagePath}:`, imgError);
+      }
       
       setModalImg(imageURL);
       setModalTitle(`Item ${fileIndex}`);
       
       // Fetch text content - use the same folder structure as images
-      const { publicURL: textURL } = supabase
+      const { publicURL: textURL, error: textUrlError } = supabase
         .storage
         .from('object-texts')
         .getPublicUrl(textPath);  // This will look for texts in the same subfolder
       
+      if (textUrlError) {
+        console.error(`Error getting text URL for ${textPath}:`, textUrlError);
+      }
+      
       try {
+        console.log(`Fetching text from URL: ${textURL}`);
         const res = await fetch(textURL);
+        if (!res.ok) {
+          throw new Error(`HTTP error ${res.status}`);
+        }
         const text = await res.text();
         setModalText(text);
-      } catch {
-        setModalText("Could not load text for this item.");
+      } catch (fetchError) {
+        console.error(`Error fetching text: ${fetchError.message}`);
+        setModalText(`Could not load text for this item. Error: ${fetchError.message}`);
       }
     } catch (e) {
-      setModalText("Failed to load content.");
+      console.error(`General error in handleObjectClick: ${e.message}`);
+      setModalText(`Failed to load content. Error: ${e.message}`);
     }
     
     setLoading(false);
@@ -154,16 +228,46 @@ export default function EggBox() {
           )}
         </div>
         
+        {detailedError && (
+          <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #f00', backgroundColor: '#fff0f0'}}>
+            <h3>Detailed Error Information</h3>
+            <p><strong>Error Type:</strong> {detailedError.type}</p>
+            <p><strong>Message:</strong> {detailedError.message}</p>
+            {detailedError.details && <p><strong>Details:</strong> {JSON.stringify(detailedError.details)}</p>}
+            {detailedError.path && <p><strong>Path:</strong> {detailedError.path}</p>}
+            {detailedError.folderPath && <p><strong>Folder Path:</strong> {detailedError.folderPath}</p>}
+            {detailedError.stack && (
+              <div>
+                <p><strong>Stack:</strong></p>
+                <pre style={{overflowX: 'auto'}}>{detailedError.stack}</pre>
+              </div>
+            )}
+          </div>
+        )}
+        
+        <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc'}}>
+          <h3>Storage Buckets Available:</h3>
+          {buckets.length > 0 ? (
+            <ul>
+              {buckets.map((bucket, i) => (
+                <li key={i}>{bucket.name}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>No buckets found or error retrieving buckets</p>
+          )}
+        </div>
+        
         <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc'}}>
           <h3>Storage Information</h3>
-          <p><strong>Expected Box Image Path:</strong> {boxFolder}/box-base.jpg</p>
-          <p><strong>Box Image URL:</strong> {boxImageUrl || "Not loaded"}</p>
-          <p><strong>Expected Object Images:</strong> {boxFolder}/img1.png, {boxFolder}/img2.png, etc.</p>
+          <p><strong>Expected Box Image Path:</strong> {boxFolder}/box-base.jpg <span style={{color: 'gray'}}>(in object-images bucket)</span></p>
+          <p><strong>Box Image URL:</strong> <a href={boxImageUrl} target="_blank" rel="noopener noreferrer">{boxImageUrl || "Not loaded"}</a></p>
+          <p><strong>Expected Object Images:</strong> {boxFolder}/img1.png, {boxFolder}/img2.png, etc. <span style={{color: 'gray'}}>(in object-images bucket)</span></p>
           <p><strong>Expected Text Files:</strong> <span style={{color: 'blue'}}>{boxFolder}/text1.txt, {boxFolder}/text2.txt, etc. (in object-texts bucket)</span></p>
         </div>
         
         <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc'}}>
-          <h3>Files Found in Folder "{boxFolder}":</h3>
+          <h3>Files Found in Image Folder "{boxFolder}": <span style={{color: 'gray'}}>(in object-images bucket)</span></h3>
           {folderContents.length > 0 ? (
             <ul>
               {folderContents.map((file, i) => (
@@ -172,6 +276,19 @@ export default function EggBox() {
             </ul>
           ) : (
             <p>No files found in this folder or folder doesn't exist</p>
+          )}
+        </div>
+        
+        <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc'}}>
+          <h3>Files Found in Text Folder "{boxFolder}": <span style={{color: 'gray'}}>(in object-texts bucket)</span></h3>
+          {textFolderContents.length > 0 ? (
+            <ul>
+              {textFolderContents.map((file, i) => (
+                <li key={i}>{file.name}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>No text files found in this folder or folder doesn't exist</p>
           )}
         </div>
         
@@ -185,6 +302,7 @@ export default function EggBox() {
                 alt="Base Box" 
                 style={{maxWidth: '100px', border: '1px solid #ccc'}}
               />
+              <p style={{fontSize: '10px'}}>{boxFolder}/box-base.jpg</p>
             </div>
             
             {[1,2,3,4,5,6,7].map(index => {
@@ -203,6 +321,27 @@ export default function EggBox() {
                     style={{maxWidth: '100px', border: '1px solid #ccc'}}
                   />
                   <p style={{fontSize: '10px'}}>{imagePath}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        
+        <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc'}}>
+          <h3>Testing Text Files</h3>
+          <div>
+            {[1,2,3,4,5,6,7].map(index => {
+              const textPath = `${boxFolder}/text${index}.txt`;
+              const { publicURL } = supabase
+                .storage
+                .from('object-texts')
+                .getPublicUrl(textPath);
+              
+              return (
+                <div key={index} style={{marginBottom: '10px', padding: '5px', border: '1px solid #eee'}}>
+                  <p>Text {index}:</p>
+                  <p style={{fontSize: '10px'}}>{textPath}</p>
+                  <p><a href={publicURL} target="_blank" rel="noopener noreferrer">Open Text URL</a></p>
                 </div>
               );
             })}
