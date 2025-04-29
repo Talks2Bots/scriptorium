@@ -2,15 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import "./EggBox.css";
 import { supabase } from "../supabaseClient";
 
-// Helper function to create a debug logger
-const createDebugLogger = (isDebugMode) => {
-  return (...args) => {
-    if (isDebugMode) {
-      console.log(...args);
-    }
-  };
-};
-
 export default function EggBox() {
   const [box, setBox] = useState(null);
   const [boxFolder, setBoxFolder] = useState("");
