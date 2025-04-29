@@ -13,7 +13,7 @@ export default function EggBox() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [folderContents, setFolderContents] = useState([]);
-  const [debugMode, setDebugMode] = useState(true);
+  const [debugMode, setDebugMode] = useState(false);
   const [buckets, setBuckets] = useState([]);
   const [textFolderContents, setTextFolderContents] = useState([]);
   const [detailedError, setDetailedError] = useState(null);
@@ -42,6 +42,23 @@ export default function EggBox() {
     return `${baseUrl}/storage/v1/object/public/${bucketName}/${path}`;
   };
 
+  // Check URL for a debug parameter on component mount
+  useEffect(() => {
+    // Check if there's a debug=true parameter in the URL
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('debug') === 'true') {
+      setDebugMode(true);
+      console.log("Debug mode enabled via URL parameter");
+    }
+  }, []);
+
+  // Add debug console logging helper
+  const debugLog = (...args) => {
+    if (debugMode) {
+      console.log(...args);
+    }
+  };
+
   // Fetch the box data on mount
   useEffect(() => {
     const fetchBoxData = async () => {
@@ -50,8 +67,8 @@ export default function EggBox() {
       setDetailedError(null);
       
       try {
-        console.log("Supabase Client URL:", process.env.REACT_APP_SUPABASE_URL);
-        console.log("Supabase Key Available:", process.env.REACT_APP_SUPABASE_ANON_KEY ? "Yes" : "No");
+        debugLog("Supabase Client URL:", process.env.REACT_APP_SUPABASE_URL);
+        debugLog("Supabase Key Available:", process.env.REACT_APP_SUPABASE_ANON_KEY ? "Yes" : "No");
         
         // Get all available buckets for debugging
         const { data: bucketsData, error: bucketsError } = await supabase
@@ -66,7 +83,7 @@ export default function EggBox() {
             details: bucketsError.details
           });
         } else {
-          console.log("Buckets found:", bucketsData);
+          debugLog("Buckets found:", bucketsData);
           setBuckets(bucketsData || []);
         }
         
@@ -90,13 +107,13 @@ export default function EggBox() {
         if (!boxes || boxes.length === 0) throw new Error("No boxes found.");
         
         const currentBox = boxes[0];
-        console.log("Box data:", currentBox);
+        debugLog("Box data:", currentBox);
         setBox(currentBox);
         
         // Get the folder name from the box record
         const folderName = currentBox.folder_name || "dickinson-birds";
         setBoxFolder(folderName);
-        console.log("Using folder name:", folderName);
+        debugLog("Using folder name:", folderName);
         
         // First, list the folder contents to see what's available
         const { data: files, error: listError } = await supabase
@@ -115,7 +132,7 @@ export default function EggBox() {
           throw new Error(`Could not list image folder contents: ${listError.message}`);
         }
         
-        console.log("Files in image folder:", files);
+        debugLog("Files in image folder:", files);
         setFolderContents(files || []);
 
         // Also check the text folder to make sure it exists
@@ -200,7 +217,7 @@ export default function EggBox() {
       const textURL = getDirectStorageUrl('object-texts', textPath);
       
       try {
-        console.log(`Fetching text from URL: ${textURL}`);
+        debugLog(`Fetching text from URL: ${textURL}`);
         const res = await fetch(textURL);
         if (!res.ok) {
           throw new Error(`HTTP error ${res.status}`);
@@ -732,7 +749,7 @@ WITH CHECK ( true )`}
         const imageUrl = getDirectStorageUrl('object-images', imagePath);
         
         // Add debugging console log
-        console.log(`Rendering object ${i+1} from URL:`, imageUrl);
+        debugLog(`Rendering object ${i+1} from URL:`, imageUrl);
         
         return (
           <img
@@ -746,7 +763,7 @@ WITH CHECK ( true )`}
             }}
             alt={`Object ${i+1}`}
             onClick={() => handleObjectClick(i)}
-            onError={(e) => console.error(`Failed to load object ${i+1}`, e)}
+            onError={(e) => debugMode && console.error(`Failed to load object ${i+1}`, e)}
           />
         );
       })}
@@ -769,6 +786,20 @@ WITH CHECK ( true )`}
           </div>
         </div>
       )}
+      
+      {/* Small developer note at the bottom */}
+      <div style={{
+        position: 'fixed', 
+        bottom: '5px', 
+        right: '5px', 
+        fontSize: '10px', 
+        color: 'rgba(0,0,0,0.3)',
+        padding: '3px',
+        background: 'rgba(255,255,255,0.5)',
+        borderRadius: '3px'
+      }}>
+        For debugging: Add ?debug=true to URL
+      </div>
     </div>
   );
 }
