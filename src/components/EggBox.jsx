@@ -144,6 +144,7 @@ export default function EggBox() {
     };
     
     fetchBoxData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleObjectClick = async (index) => {
