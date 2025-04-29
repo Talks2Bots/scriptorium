@@ -34,6 +34,14 @@ export default function EggBox() {
     { x: 51.8, y: 63.3 },
   ];
 
+  // Helper function to construct direct storage URLs
+  const getDirectStorageUrl = (bucketName, path) => {
+    const baseUrl = process.env.REACT_APP_SUPABASE_URL;
+    if (!baseUrl) return null;
+    
+    return `${baseUrl}/storage/v1/object/public/${bucketName}/${path}`;
+  };
+
   // Fetch the box data on mount
   useEffect(() => {
     const fetchBoxData = async () => {
@@ -147,23 +155,9 @@ export default function EggBox() {
           console.log(`Found ${textFiles?.length || 0} text files in ${folderName}`);
         }
         
-        // Get the box base image URL
-        const { publicURL: boxImageURL, error: urlError } = supabase
-          .storage
-          .from('object-images')
-          .getPublicUrl(`${folderName}/box-base.jpg`);
-        
-        if (urlError) {
-          console.error("Box image URL error:", urlError);
-          setDetailedError({
-            type: "image-url",
-            message: urlError.message,
-            details: urlError.details,
-            path: `${folderName}/box-base.jpg`
-          });
-        } else {
-          console.log("Box image URL:", boxImageURL);
-        }
+        // Get the box base image URL using direct URL construction instead of Supabase
+        const boxImageURL = getDirectStorageUrl('object-images', `${folderName}/box-base.jpg`);
+        console.log("Box image URL:", boxImageURL);
         
         setBoxImageUrl(boxImageURL);
       } catch (e) {
@@ -196,28 +190,14 @@ export default function EggBox() {
       const imagePath = `${boxFolder}/img${fileIndex}.png`;
       const textPath = `${boxFolder}/text${fileIndex}.txt`;
       
-      // Get image URL
-      const { publicURL: imageURL, error: imgError } = supabase
-        .storage
-        .from('object-images')
-        .getPublicUrl(imagePath);
-      
-      if (imgError) {
-        console.error(`Error getting image URL for ${imagePath}:`, imgError);
-      }
+      // Use direct URL construction instead of Supabase getPublicUrl
+      const imageURL = getDirectStorageUrl('object-images', imagePath);
       
       setModalImg(imageURL);
       setModalTitle(`Item ${fileIndex}`);
       
-      // Fetch text content - use the same folder structure as images
-      const { publicURL: textURL, error: textUrlError } = supabase
-        .storage
-        .from('object-texts')
-        .getPublicUrl(textPath);  // This will look for texts in the same subfolder
-      
-      if (textUrlError) {
-        console.error(`Error getting text URL for ${textPath}:`, textUrlError);
-      }
+      // Use direct URL construction for text URL too
+      const textURL = getDirectStorageUrl('object-texts', textPath);
       
       try {
         console.log(`Fetching text from URL: ${textURL}`);
@@ -348,10 +328,7 @@ export default function EggBox() {
                 ? `${boxFolder}/box-base.jpg` 
                 : `${boxFolder}/img${index}.png`;
               
-              const { publicURL } = supabase
-                .storage
-                .from('object-images')
-                .getPublicUrl(testPath);
+              const publicURL = getDirectStorageUrl('object-images', testPath);
               
               return (
                 <div key={index} style={{margin: '5px 0', padding: '5px', border: '1px solid #ddd'}}>
@@ -408,8 +385,8 @@ WITH CHECK ( true )`}
               
               <p style={{marginTop: '10px'}}>Object 1 Image (Manual HTML):</p>
               <div dangerouslySetInnerHTML={{
-                __html: supabase.storage.from('object-images').getPublicUrl(`${boxFolder}/img1.png`).publicURL ? 
-                  `<img src="${supabase.storage.from('object-images').getPublicUrl(`${boxFolder}/img1.png`).publicURL}" 
+                __html: getDirectStorageUrl('object-images', `${boxFolder}/img1.png`) ? 
+                  `<img src="${getDirectStorageUrl('object-images', `${boxFolder}/img1.png`)}" 
                         alt="Direct HTML Test" style="max-width:150px; border:1px solid blue;" />` :
                   "<p>No URL available</p>"
               }} />
@@ -623,10 +600,7 @@ WITH CHECK ( true )`}
             
             {[1,2,3,4,5,6,7].map(index => {
               const imagePath = `${boxFolder}/img${index}.png`;
-              const { publicURL } = supabase
-                .storage
-                .from('object-images')
-                .getPublicUrl(imagePath);
+              const publicURL = getDirectStorageUrl('object-images', imagePath);
               
               // Log each URL for debugging
               console.log(`Object ${index} URL:`, publicURL);
@@ -660,10 +634,7 @@ WITH CHECK ( true )`}
           <div>
             {[1,2,3,4,5,6,7].map(index => {
               const textPath = `${boxFolder}/text${index}.txt`;
-              const { publicURL } = supabase
-                .storage
-                .from('object-texts')
-                .getPublicUrl(textPath);
+              const publicURL = getDirectStorageUrl('object-texts', textPath);
               
               return (
                 <div key={index} style={{marginBottom: '10px', padding: '5px', border: '1px solid #eee'}}>
@@ -754,13 +725,11 @@ WITH CHECK ( true )`}
         <div className="loading-box">Loading box image...</div>
       )}
 
-      {/* Render the 7 object slots using the naming convention */}
+      {/* Render the 7 object slots using the direct URL construction */}
       {CUP_POS.map((position, i) => {
         const imagePath = `${boxFolder}/img${i+1}.png`;
-        const imageUrl = supabase
-          .storage
-          .from('object-images')
-          .getPublicUrl(imagePath).publicURL;
+        // Use direct URL construction instead of Supabase getPublicUrl
+        const imageUrl = getDirectStorageUrl('object-images', imagePath);
         
         // Add debugging console log
         console.log(`Rendering object ${i+1} from URL:`, imageUrl);
