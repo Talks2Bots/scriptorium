@@ -3,17 +3,17 @@ import "./EggBox.css";
 import { supabase } from "../supabaseClient";
 
 export default function EggBox() {
-  const [objects, setObjects] = useState([]);
   const [box, setBox] = useState(null);
   const [boxFolder, setBoxFolder] = useState("");
   const [boxImageUrl, setBoxImageUrl] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
   const [modalImg, setModalImg] = useState("");
+  const [modalTitle, setModalTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Define CUP_POS here so it's available throughout the component
+  // Fixed positions for the 7 objects
   const CUP_POS = [
     { x: 49.1, y: 34.7 },
     { x: 69.9, y: 41.8 },
@@ -24,29 +24,30 @@ export default function EggBox() {
     { x: 51.8, y: 63.3 },
   ];
 
-  // Fetch the first box and its objects on mount
+  // Fetch the box data on mount
   useEffect(() => {
-    const fetchBoxAndObjects = async () => {
+    const fetchBoxData = async () => {
       setLoading(true);
       setError("");
       try {
-        // Fetch the first box with its folder name
+        // Fetch the first box
         const { data: boxes, error: boxError } = await supabase
           .from("boxes")
           .select("*")
           .order("created_at", { ascending: true })
           .limit(1);
+        
         if (boxError) throw boxError;
         if (!boxes || boxes.length === 0) throw new Error("No boxes found.");
         
         const currentBox = boxes[0];
         setBox(currentBox);
         
-        // Get the folder name (could be stored in the DB or hardcoded)
+        // Get the folder name from the box record
         const folderName = currentBox.folder_name || "dickinson-birds";
         setBoxFolder(folderName);
         
-        // Get the box base image URL using the folder
+        // Get the box base image URL
         const { publicURL: boxImageURL, error: boxImgError } = supabase
           .storage
           .from('object-images')
@@ -54,60 +55,62 @@ export default function EggBox() {
         
         if (boxImgError) throw boxImgError;
         setBoxImageUrl(boxImageURL);
-
-        // Fetch the objects for this box
-        const { data: objs, error: objError } = await supabase
-          .from("objects")
-          .select("*")
-          .eq("box_id", currentBox.id)
-          .order("order", { ascending: true });
-        if (objError) throw objError;
-        setObjects(objs);
+        
+        console.log("Box loaded successfully:", currentBox.title || "Untitled Box");
+        console.log("Using folder:", folderName);
+        console.log("Box image URL:", boxImageURL);
       } catch (e) {
         setError(e.message || "Failed to load box data.");
         console.error("Error loading box:", e);
       }
       setLoading(false);
     };
-    fetchBoxAndObjects();
+    
+    fetchBoxData();
   }, []);
 
-  const handleEggClick = async (obj) => {
+  const handleObjectClick = async (index) => {
     setModalOpen(true);
     setLoading(true);
     setModalText("");
+    setModalTitle("");
+    
+    // Use 1-based indexing for files
+    const fileIndex = index + 1;
     
     try {
-      // Get the image path - handle both full paths and just filenames
-      const imagePath = obj.image_url.includes('/') 
-        ? obj.image_url 
-        : `${boxFolder}/${obj.image_url}`;
+      // Construct URLs for image and text based on the folder and index
+      const imagePath = `${boxFolder}/img${fileIndex}.png`;
+      const textPath = `${boxFolder}/text${fileIndex}.txt`;
       
+      console.log("Loading image:", imagePath);
+      console.log("Loading text:", textPath);
+      
+      // Get image URL
       const { publicURL: imageURL } = supabase
         .storage
         .from('object-images')
         .getPublicUrl(imagePath);
       
       setModalImg(imageURL);
+      setModalTitle(`Item ${fileIndex}`);
       
-      // Get the text path - similar approach for text files
-      const textPath = obj.text_url.includes('/')
-        ? obj.text_url
-        : `${boxFolder}/${obj.text_url}`;
-      
-      const { publicURL, error: urlError } = supabase
+      // Fetch text content
+      const { publicURL: textURL } = supabase
         .storage
         .from('object-texts')
         .getPublicUrl(textPath);
       
-      if (urlError) throw urlError;
-      const res = await fetch(publicURL);
+      const res = await fetch(textURL);
+      if (!res.ok) throw new Error(`Failed to fetch text: ${res.status}`);
+      
       const text = await res.text();
       setModalText(text);
     } catch (e) {
-      console.error("Error loading object:", e);
+      console.error("Error loading object content:", e);
       setModalText("Failed to load text.");
     }
+    
     setLoading(false);
   };
 
@@ -115,27 +118,32 @@ export default function EggBox() {
     setModalOpen(false);
     setModalText("");
     setModalImg("");
-    setLoading(false);
+    setModalTitle("");
   };
 
-  if (loading && !modalOpen) return <div className="boxWrap">Loading...</div>;
-  if (error) return <div className="boxWrap">{error}</div>;
-  if (!box || objects.length === 0) return <div className="boxWrap">No box data found.</div>;
+  if (loading && !modalOpen) return <div className="boxWrap">Loading box...</div>;
+  if (error) return <div className="boxWrap">Error: {error}</div>;
+  if (!box) return <div className="boxWrap">No box found.</div>;
 
   return (
     <div className="boxWrap">
       {boxImageUrl ? (
-        <img src={boxImageUrl} className="layer" alt="velvet box" />
+        <img 
+          src={boxImageUrl} 
+          className="layer" 
+          alt="velvet box" 
+          onError={(e) => {
+            console.error("Failed to load box image:", boxImageUrl);
+            e.target.onerror = null;
+          }}
+        />
       ) : (
-        <div className="loading-box">Loading box...</div>
+        <div className="loading-box">Loading box image...</div>
       )}
 
-      {objects.slice(0, 7).map((obj, i) => {
-        // Handle both full paths and just filenames for images
-        const imagePath = obj.image_url.includes('/')
-          ? obj.image_url
-          : `${boxFolder}/${obj.image_url}`;
-        
+      {/* Render the 7 object slots using the naming convention */}
+      {CUP_POS.map((position, i) => {
+        const imagePath = `${boxFolder}/img${i+1}.png`;
         const imageUrl = supabase
           .storage
           .from('object-images')
@@ -143,16 +151,20 @@ export default function EggBox() {
         
         return (
           <img
-            key={obj.id}
+            key={i}
             src={imageUrl}
             className="slot"
             style={{
-              left: `${CUP_POS[i].x}%`,
-              top: `${CUP_POS[i].y}%`,
+              left: `${position.x}%`,
+              top: `${position.y}%`,
               zIndex: i,
             }}
-            alt={obj.title || `egg-${i+1}`}
-            onClick={() => handleEggClick(obj)}
+            alt={`Object ${i+1}`}
+            onClick={() => handleObjectClick(i)}
+            onError={(e) => {
+              console.error(`Failed to load object image ${i+1}:`, imagePath);
+              e.target.onerror = null;
+            }}
           />
         );
       })}
@@ -161,7 +173,18 @@ export default function EggBox() {
         <div className="egg-modal-overlay" onClick={closeModal}>
           <div className="egg-modal" onClick={e => e.stopPropagation()}>
             <button className="egg-modal-close" onClick={closeModal}>&times;</button>
-            {modalImg && <img src={modalImg} alt="egg" style={{maxWidth: '120px', margin: '0 auto'}} />}
+            <h3>{modalTitle}</h3>
+            {modalImg && (
+              <img 
+                src={modalImg} 
+                alt="Selected object" 
+                style={{maxWidth: '120px', margin: '0 auto'}} 
+                onError={(e) => {
+                  console.error("Failed to load modal image:", modalImg);
+                  e.target.onerror = null;
+                }}
+              />
+            )}
             <div className="egg-modal-text">
               {loading ? "Loading..." : modalText}
             </div>
