@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./EggBox.css";
 import { supabase } from "../supabaseClient";
 
@@ -44,15 +44,19 @@ export default function EggBox() {
   ];
 
   // Helper function to construct direct storage URLs
-  const getDirectStorageUrl = (bucketName, path) => {
+  const getDirectStorageUrl = useCallback((bucketName, path) => {
     const baseUrl = process.env.REACT_APP_SUPABASE_URL;
     if (!baseUrl) return null;
     
     return `${baseUrl}/storage/v1/object/public/${bucketName}/${path}`;
-  };
+  }, []);
 
   // Debug console logging helper
-  const debugLog = createDebugLogger(debugMode);
+  const debugLog = useCallback((...args) => {
+    if (debugMode) {
+      console.log(...args);
+    }
+  }, [debugMode]);
 
   // Check URL for a debug parameter on component mount
   useEffect(() => {
@@ -197,7 +201,7 @@ export default function EggBox() {
     };
     
     fetchBoxData();
-  }, [detailedError]);
+  }, [debugLog, getDirectStorageUrl, detailedError]);
 
   const handleObjectClick = async (index) => {
     setModalOpen(true);
