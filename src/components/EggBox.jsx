@@ -345,8 +345,17 @@ export default function EggBox() {
                 src={boxImageUrl} 
                 alt="Base Box" 
                 style={{maxWidth: '100px', border: '1px solid #ccc'}}
+                onError={(e) => {
+                  console.error("Failed to load box image", e);
+                  e.target.style.border = "2px solid red";
+                  e.target.style.padding = "10px";
+                  e.target.style.background = "#ffeeee";
+                }}
               />
               <p style={{fontSize: '10px'}}>{boxFolder}/box-base.jpg</p>
+              <p style={{fontSize: '10px', color: boxImageUrl ? 'green' : 'red'}}>
+                URL: {boxImageUrl || "Not generated"}
+              </p>
             </div>
             
             {[1,2,3,4,5,6,7].map(index => {
@@ -356,6 +365,9 @@ export default function EggBox() {
                 .from('object-images')
                 .getPublicUrl(imagePath);
               
+              // Log each URL for debugging
+              console.log(`Object ${index} URL:`, publicURL);
+              
               return (
                 <div key={index}>
                   <p>Object {index}:</p>
@@ -363,8 +375,17 @@ export default function EggBox() {
                     src={publicURL} 
                     alt={`Object ${index}`}
                     style={{maxWidth: '100px', border: '1px solid #ccc'}}
+                    onError={(e) => {
+                      console.error(`Failed to load object ${index} image`, e);
+                      e.target.style.border = "2px solid red";
+                      e.target.style.padding = "10px";
+                      e.target.style.background = "#ffeeee";
+                    }}
                   />
                   <p style={{fontSize: '10px'}}>{imagePath}</p>
+                  <p style={{fontSize: '10px', color: publicURL ? 'green' : 'red'}}>
+                    URL: {publicURL ? (publicURL.length > 30 ? publicURL.substring(0, 30) + '...' : publicURL) : "Not generated"}
+                  </p>
                 </div>
               );
             })}
@@ -478,6 +499,9 @@ export default function EggBox() {
           .from('object-images')
           .getPublicUrl(imagePath).publicURL;
         
+        // Add debugging console log
+        console.log(`Rendering object ${i+1} from URL:`, imageUrl);
+        
         return (
           <img
             key={i}
@@ -490,6 +514,7 @@ export default function EggBox() {
             }}
             alt={`Object ${i+1}`}
             onClick={() => handleObjectClick(i)}
+            onError={(e) => console.error(`Failed to load object ${i+1}`, e)}
           />
         );
       })}
