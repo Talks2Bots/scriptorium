@@ -17,7 +17,7 @@ export default function EggBox() {
   const [buckets, setBuckets] = useState([]);
   const [textFolderContents, setTextFolderContents] = useState([]);
   const [detailedError, setDetailedError] = useState(null);
-  const [supabaseInfo, setSupabaseInfo] = useState({
+  const [supabaseInfo] = useState({
     url: process.env.REACT_APP_SUPABASE_URL || "Not set",
     hasKey: process.env.REACT_APP_SUPABASE_ANON_KEY ? "Key is set" : "Key is missing",
     fullInfo: true
@@ -129,7 +129,7 @@ export default function EggBox() {
           // Try to create the folder in object-texts if it doesn't exist
           try {
             console.log("Attempting to create text folder:", folderName);
-            const { data: createData, error: createError } = await supabase
+            const { error: createError } = await supabase
               .storage
               .from('object-texts')
               .upload(`${folderName}/.emptyFolderPlaceholder`, new Blob(['']));
@@ -181,7 +181,7 @@ export default function EggBox() {
     };
     
     fetchBoxData();
-  }, []);
+  }, [detailedError]);
 
   const handleObjectClick = async (index) => {
     setModalOpen(true);
