@@ -415,6 +415,172 @@ WITH CHECK ( true )`}
               }} />
             </div>
           </div>
+          
+          <div style={{marginTop: '20px', padding: '15px', backgroundColor: '#fffaf0', border: '1px solid #ffa500'}}>
+            <h4>URL Structure Investigation (404 Error Help)</h4>
+            <p>If you're getting 404 errors, let's check the URL structure:</p>
+            
+            <div style={{marginTop: '10px'}}>
+              <h5>1. Base URL Check</h5>
+              <p style={{fontSize: '14px'}}>Your Supabase project URL should look like: <code>https://[project-id].supabase.co</code></p>
+              <p style={{fontSize: '14px'}}>Your environment has: <code>{process.env.REACT_APP_SUPABASE_URL || "Not set in environment"}</code></p>
+            </div>
+            
+            <div style={{marginTop: '15px'}}>
+              <h5>2. Full URL Analysis</h5>
+              {(() => {
+                const testPath = `${boxFolder}/box-base.jpg`;
+                const url = supabase.storage.from('object-images').getPublicUrl(testPath).publicURL;
+                
+                // Parse URL to check components
+                let urlParts = null;
+                try {
+                  const parsedUrl = new URL(url);
+                  urlParts = {
+                    protocol: parsedUrl.protocol,
+                    host: parsedUrl.host,
+                    pathname: parsedUrl.pathname,
+                    full: url
+                  };
+                } catch (e) {
+                  console.error("URL parsing error:", e);
+                }
+                
+                return (
+                  <div>
+                    <p style={{fontSize: '14px', marginBottom: '5px'}}><strong>For file:</strong> {testPath}</p>
+                    {urlParts ? (
+                      <div style={{fontSize: '14px', backgroundColor: '#f8f9fa', padding: '10px', borderRadius: '4px'}}>
+                        <p><strong>Protocol:</strong> {urlParts.protocol}</p>
+                        <p><strong>Host:</strong> {urlParts.host}</p>
+                        <p><strong>Path:</strong> {urlParts.pathname}</p>
+                        <p><strong>Full URL:</strong> <code style={{wordBreak: 'break-all'}}>{urlParts.full}</code></p>
+                      </div>
+                    ) : (
+                      <p>Could not parse URL: {url || "No URL generated"}</p>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+            
+            <div style={{marginTop: '15px'}}>
+              <h5>3. Alternative URL Test</h5>
+              <p style={{fontSize: '14px'}}>Let's try constructing a URL manually:</p>
+              
+              {(() => {
+                const baseUrl = process.env.REACT_APP_SUPABASE_URL || "";
+                // Construct a URL in the format that Supabase typically uses
+                const manualUrl = baseUrl 
+                  ? `${baseUrl}/storage/v1/object/public/object-images/${boxFolder}/box-base.jpg`
+                  : "Cannot construct URL without REACT_APP_SUPABASE_URL";
+                  
+                return (
+                  <div>
+                    <p style={{fontSize: '14px', wordBreak: 'break-all'}}>
+                      <strong>Manual URL:</strong> <code>{manualUrl}</code>
+                    </p>
+                    <button
+                      onClick={async () => {
+                        if (!baseUrl) {
+                          alert("Cannot test without base URL");
+                          return;
+                        }
+                        try {
+                          const response = await fetch(manualUrl);
+                          if (response.ok) {
+                            alert(`Success with manual URL! (${response.status})`);
+                          } else {
+                            alert(`Error with manual URL! Status: ${response.status} - ${response.statusText}`);
+                          }
+                        } catch (error) {
+                          alert(`Fetch error with manual URL: ${error.message}`);
+                        }
+                      }}
+                      style={{padding: '5px 10px', backgroundColor: '#FF8C00', color: 'white', border: 'none', borderRadius: '4px', marginTop: '5px'}}
+                    >
+                      Test Manual URL
+                    </button>
+                  </div>
+                );
+              })()}
+            </div>
+            
+            <div style={{marginTop: '15px'}}>
+              <h5>4. Common 404 Fixes:</h5>
+              <ul style={{fontSize: '14px'}}>
+                <li>Verify the bucket is named exactly <strong>object-images</strong> (case-sensitive)</li>
+                <li>Check if the folder path <strong>{boxFolder}</strong> exists exactly as spelled</li>
+                <li>Confirm file names match exactly (case-sensitive): <strong>box-base.jpg</strong>, <strong>img1.png</strong>, etc.</li>
+                <li>If using file IDs in URLs, try switching to the folder/filename approach</li>
+                <li>Verify your Supabase project URL is correct in your environment variables</li>
+              </ul>
+            </div>
+            
+            <div style={{marginTop: '15px'}}>
+              <h5>5. URL Path Variation Tests</h5>
+              <p style={{fontSize: '14px'}}>Let's try different URL path variations to find the correct format:</p>
+              
+              {(() => {
+                const baseUrl = process.env.REACT_APP_SUPABASE_URL || "";
+                if (!baseUrl) return <p>Cannot test without base URL in environment variables</p>;
+                
+                // Different path variations to try
+                const variations = [
+                  {
+                    name: "Standard path",
+                    url: `${baseUrl}/storage/v1/object/public/object-images/${boxFolder}/box-base.jpg`
+                  },
+                  {
+                    name: "Without folder",
+                    url: `${baseUrl}/storage/v1/object/public/object-images/box-base.jpg`
+                  },
+                  {
+                    name: "With auth path",
+                    url: `${baseUrl}/storage/v1/object/authenticated/object-images/${boxFolder}/box-base.jpg`
+                  },
+                  {
+                    name: "Without v1",
+                    url: `${baseUrl}/storage/object/public/object-images/${boxFolder}/box-base.jpg`
+                  },
+                  {
+                    name: "Download URL",
+                    url: `${baseUrl}/storage/v1/object/download/object-images/${boxFolder}/box-base.jpg`
+                  }
+                ];
+                
+                return (
+                  <div style={{marginTop: '10px'}}>
+                    {variations.map((variation, index) => (
+                      <div key={index} style={{marginBottom: '10px', padding: '5px', borderBottom: '1px solid #ddd'}}>
+                        <p style={{fontSize: '14px'}}><strong>{variation.name}:</strong></p>
+                        <p style={{fontSize: '12px', wordBreak: 'break-all', backgroundColor: '#f0f0f0', padding: '5px'}}>
+                          <code>{variation.url}</code>
+                        </p>
+                        <button
+                          onClick={async () => {
+                            try {
+                              const response = await fetch(variation.url);
+                              if (response.ok) {
+                                alert(`Success with ${variation.name}! (${response.status})`);
+                              } else {
+                                alert(`Error with ${variation.name}! Status: ${response.status} - ${response.statusText}`);
+                              }
+                            } catch (error) {
+                              alert(`Fetch error with ${variation.name}: ${error.message}`);
+                            }
+                          }}
+                          style={{padding: '3px 8px', backgroundColor: '#FF8C00', color: 'white', border: 'none', borderRadius: '4px', marginTop: '3px', fontSize: '12px'}}
+                        >
+                          Test This Variation
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
         </div>
         
         <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc'}}>
