@@ -57,6 +57,18 @@ export default function EggBox() {
         
         if (listError) throw new Error("Could not list folder contents");
         setFolderContents(files || []);
+
+        // Also check the text folder to make sure it exists
+        const { data: textFiles, error: textListError } = await supabase
+          .storage
+          .from('object-texts')
+          .list(folderName);
+        
+        if (textListError) {
+          console.log("Warning: Could not list text folder contents");
+        } else {
+          console.log(`Found ${textFiles?.length || 0} text files in ${folderName}`);
+        }
         
         // Get the box base image URL
         const { publicURL: boxImageURL } = supabase
@@ -96,11 +108,11 @@ export default function EggBox() {
       setModalImg(imageURL);
       setModalTitle(`Item ${fileIndex}`);
       
-      // Fetch text content
+      // Fetch text content - use the same folder structure as images
       const { publicURL: textURL } = supabase
         .storage
         .from('object-texts')
-        .getPublicUrl(textPath);
+        .getPublicUrl(textPath);  // This will look for texts in the same subfolder
       
       try {
         const res = await fetch(textURL);
@@ -147,7 +159,7 @@ export default function EggBox() {
           <p><strong>Expected Box Image Path:</strong> {boxFolder}/box-base.jpg</p>
           <p><strong>Box Image URL:</strong> {boxImageUrl || "Not loaded"}</p>
           <p><strong>Expected Object Images:</strong> {boxFolder}/img1.png, {boxFolder}/img2.png, etc.</p>
-          <p><strong>Expected Text Files:</strong> {boxFolder}/text1.txt, {boxFolder}/text2.txt, etc.</p>
+          <p><strong>Expected Text Files:</strong> <span style={{color: 'blue'}}>{boxFolder}/text1.txt, {boxFolder}/text2.txt, etc. (in object-texts bucket)</span></p>
         </div>
         
         <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc'}}>
@@ -221,7 +233,7 @@ export default function EggBox() {
             <li>Your Supabase storage has a folder named: <strong>{boxFolder || "dickinson-birds"}</strong></li>
             <li>Inside that folder, you have a file named: <strong>box-base.jpg</strong></li>
             <li>Inside that folder, you have image files named: <strong>img1.png, img2.png, etc.</strong></li>
-            <li>In your object-texts bucket, you have text files named: <strong>text1.txt, text2.txt, etc.</strong></li>
+            <li>In your object-texts bucket, in a folder named <strong>{boxFolder}</strong>, you have text files named: <strong>text1.txt, text2.txt, etc.</strong></li>
           </ol>
           <p>Files found in your folder:</p>
           <ul>
