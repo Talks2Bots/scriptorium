@@ -13,6 +13,7 @@ export default function EggBox() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [folderContents, setFolderContents] = useState([]);
+  const [debugMode, setDebugMode] = useState(true);
 
   // Fixed positions for the 7 objects
   const CUP_POS = [
@@ -122,6 +123,92 @@ export default function EggBox() {
     setModalTitle("");
   };
 
+  // Always show the debug page
+  if (debugMode) {
+    return (
+      <div style={{padding: '20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'sans-serif'}}>
+        <h2>Scriptorium Debug Information</h2>
+        
+        <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc'}}>
+          <h3>Box Information</h3>
+          {box ? (
+            <div>
+              <p><strong>Title:</strong> {box.title || "Untitled"}</p>
+              <p><strong>Folder Name:</strong> {boxFolder}</p>
+              <p><strong>Box ID:</strong> {box.id}</p>
+            </div>
+          ) : (
+            <p>No box found or still loading...</p>
+          )}
+        </div>
+        
+        <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc'}}>
+          <h3>Storage Information</h3>
+          <p><strong>Expected Box Image Path:</strong> {boxFolder}/box-base.jpg</p>
+          <p><strong>Box Image URL:</strong> {boxImageUrl || "Not loaded"}</p>
+          <p><strong>Expected Object Images:</strong> {boxFolder}/img1.png, {boxFolder}/img2.png, etc.</p>
+          <p><strong>Expected Text Files:</strong> {boxFolder}/text1.txt, {boxFolder}/text2.txt, etc.</p>
+        </div>
+        
+        <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc'}}>
+          <h3>Files Found in Folder "{boxFolder}":</h3>
+          {folderContents.length > 0 ? (
+            <ul>
+              {folderContents.map((file, i) => (
+                <li key={i}>{file.name}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>No files found in this folder or folder doesn't exist</p>
+          )}
+        </div>
+        
+        <div style={{marginBottom: '20px', padding: '10px', border: '1px solid #ccc'}}>
+          <h3>Testing Image Loading</h3>
+          <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
+            <div>
+              <p>Box Base Image:</p>
+              <img 
+                src={boxImageUrl} 
+                alt="Base Box" 
+                style={{maxWidth: '100px', border: '1px solid #ccc'}}
+              />
+            </div>
+            
+            {[1,2,3,4,5,6,7].map(index => {
+              const imagePath = `${boxFolder}/img${index}.png`;
+              const { publicURL } = supabase
+                .storage
+                .from('object-images')
+                .getPublicUrl(imagePath);
+              
+              return (
+                <div key={index}>
+                  <p>Object {index}:</p>
+                  <img 
+                    src={publicURL} 
+                    alt={`Object ${index}`}
+                    style={{maxWidth: '100px', border: '1px solid #ccc'}}
+                  />
+                  <p style={{fontSize: '10px'}}>{imagePath}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        
+        <div style={{marginTop: '20px'}}>
+          <button 
+            onClick={() => setDebugMode(false)}
+            style={{padding: '10px 20px', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px'}}
+          >
+            View Normal Application
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Show a helpful error page if there's an issue
   if (error) {
     return (
@@ -143,6 +230,14 @@ export default function EggBox() {
             ))}
           </ul>
         </div>
+        <div style={{marginTop: '20px'}}>
+          <button 
+            onClick={() => setDebugMode(true)}
+            style={{padding: '10px 20px', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px'}}
+          >
+            Show Debug Information
+          </button>
+        </div>
       </div>
     );
   }
@@ -152,6 +247,24 @@ export default function EggBox() {
 
   return (
     <div className="boxWrap">
+      <button 
+        onClick={() => setDebugMode(true)}
+        style={{
+          position: 'fixed', 
+          top: '10px', 
+          right: '10px', 
+          zIndex: 1000,
+          padding: '5px 10px',
+          background: 'rgba(0,0,0,0.5)',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        Debug
+      </button>
+      
       {boxImageUrl ? (
         <img 
           src={boxImageUrl} 
