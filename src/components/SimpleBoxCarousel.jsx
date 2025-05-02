@@ -132,7 +132,9 @@ export default function SimpleBoxCarousel() {
         </button>
         
         <span className="box-indicator">
-          Box {selectedBoxIndex + 1} of {boxes.length}
+          {selectedBox && selectedBox.name ? 
+            `${selectedBox.name} (${selectedBoxIndex + 1} of ${boxes.length})` : 
+            `Box ${selectedBoxIndex + 1} of ${boxes.length}`}
         </span>
         
         <button 
@@ -147,7 +149,14 @@ export default function SimpleBoxCarousel() {
       {/* Display the selected box */}
       <div className="selected-box-container">
         {selectedBox ? (
-          <EggBox boxData={selectedBox} />
+          <>
+            <EggBox boxData={selectedBox} />
+            {selectedBox.name && (
+              <div className="box-name">
+                {selectedBox.name}
+              </div>
+            )}
+          </>
         ) : (
           <EggBox />
         )}

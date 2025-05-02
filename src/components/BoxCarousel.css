@@ -63,6 +63,20 @@
   margin: 0 auto;
 }
 
+/* Box name display */
+.box-name {
+  text-align: center;
+  font-size: 1.4rem;
+  color: #333;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 .loading {
   display: flex;
   justify-content: center;
