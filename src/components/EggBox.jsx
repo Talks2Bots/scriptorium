@@ -315,24 +315,6 @@ export default function EggBox({ boxData }) {
 
   return (
     <div className="boxWrap">
-      <button 
-        onClick={() => setDebugMode(true)}
-        style={{
-          position: 'fixed', 
-          top: '10px', 
-          right: '10px', 
-          zIndex: 1000,
-          padding: '5px 10px',
-          background: 'rgba(0,0,0,0.5)',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}
-      >
-        Debug
-      </button>
-      
       {/* Show closed or open box based on isBoxOpen state */}
       {!isBoxOpen ? (
         <div className="closed-box-container" onClick={toggleBoxState}>

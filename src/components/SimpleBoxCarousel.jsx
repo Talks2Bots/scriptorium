@@ -132,9 +132,7 @@ export default function SimpleBoxCarousel() {
         </button>
         
         <span className="box-indicator">
-          {selectedBox && selectedBox.name ? 
-            `${selectedBox.name} (${selectedBoxIndex + 1} of ${boxes.length})` : 
-            `Box ${selectedBoxIndex + 1} of ${boxes.length}`}
+          Box {selectedBoxIndex + 1} of {boxes.length}
         </span>
         
         <button 
