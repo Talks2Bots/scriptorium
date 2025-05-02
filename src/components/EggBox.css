@@ -3,8 +3,13 @@
   width: 60vmin;
   max-width: 98vw;
   min-width: 240px;
-  margin: 40px auto;
+  margin: 0 auto;
   box-shadow: 0 8px 40px 0 rgba(0,0,0,0.18), 0 0 0 12px rgba(80,60,30,0.08);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .layer {
@@ -179,6 +184,17 @@
   position: relative;
   cursor: pointer;
   transition: transform 0.3s ease;
+  max-width: 100%;
+  max-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.closed-box-container img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 
 .closed-box-container:hover {
@@ -247,6 +263,9 @@
 /* Transition animations for opening/closing */
 .boxWrap img.layer {
   transition: opacity 0.4s ease;
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
 }
 
 .boxWrap .slot {

@@ -1,10 +1,10 @@
 import React from "react";
-import EggBox from "./components/EggBox";
+import SimpleBoxCarousel from "./components/SimpleBoxCarousel";
 
 export default function App() {
   return (
     <React.StrictMode>
-      <EggBox />
+      <SimpleBoxCarousel />
     </React.StrictMode>
   );
 } 

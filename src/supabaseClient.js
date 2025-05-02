@@ -1,6 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://cazsmrnnttyajfoojxli.supabase.co'; // TODO: Replace with your Supabase project URL
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhenNtcm5udHR5YWpmb29qeGxpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU4NjUwMzMsImV4cCI6MjA2MTQ0MTAzM30.cbgZwiZAPABy2av-OgGiMyFvFvPxSLsdRk0HflunZgI'; // TODO: Replace with your Supabase anon key
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey); 
+// Check if environment variables are set
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error(
+    "ERROR: Supabase environment variables are not set! Please create a .env file with the following variables:\n" +
+    "REACT_APP_SUPABASE_URL=your-supabase-url\n" +
+    "REACT_APP_SUPABASE_ANON_KEY=your-supabase-anon-key"
+  );
+}
+
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder-url.supabase.co', 
+  supabaseAnonKey || 'placeholder-key'
+); 
