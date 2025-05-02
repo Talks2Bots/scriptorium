@@ -94,23 +94,36 @@
   line-height: 1.5;
 }
 
-/* Headings */
-.egg-modal-text h1 {
-  font-size: 1.4em;
+/* Reduce spacing for poetry */
+.egg-modal-text p {
   margin-top: 0.5em;
   margin-bottom: 0.5em;
+}
+
+/* Add styling for poem stanzas - target blank lines in poems */
+.egg-modal-text p:empty {
+  margin: 0.3em 0;
+  height: 0.5em;
+}
+
+/* Headings */
+.egg-modal-text h1, 
+.egg-modal-text h2, 
+.egg-modal-text h3 {
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+
+.egg-modal-text h1 {
+  font-size: 1.4em;
 }
 
 .egg-modal-text h2 {
   font-size: 1.2em;
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
 }
 
 .egg-modal-text h3 {
   font-size: 1.1em;
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
 }
 
 /* Lists */
