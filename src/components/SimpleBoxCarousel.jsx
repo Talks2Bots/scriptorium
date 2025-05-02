@@ -148,7 +148,7 @@ export default function SimpleBoxCarousel() {
       <div className="selected-box-container">
         {selectedBox ? (
           <>
-            <EggBox boxData={selectedBox} />
+            <EggBox key={selectedBox.id} boxData={selectedBox} />
             {selectedBox.name && (
               <div className="box-name">
                 {selectedBox.name}
