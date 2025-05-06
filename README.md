@@ -4,6 +4,10 @@ Archivus Scriptorium is an interactive web experience where treasured poems and 
 
 Each box contains a curated set of objects paired with poetic or reflective writings. The modular design makes it easy for anyone to create their own box by following a simple format and uploading images—whether crafted by hand or generated with the help of AI tools.
 
+## Live Demo
+
+Experience Archivus Scriptorium: [View Live Application](https://scriptorium.netlify.app)
+
 ![Rendered Box Example](docs/images/sample-rendered-box.png)
 
 ## Features
