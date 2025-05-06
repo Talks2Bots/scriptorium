@@ -173,4 +173,8 @@ First stanza line 3
 
 Second stanza line 1
 Second stanza line 2
-``` 
+```
+
+## License
+
+Archivus Scriptorium is open source software licensed under the [MIT license](LICENSE). 
