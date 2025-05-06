@@ -1,6 +1,8 @@
-# Scriptorium
+# Archivus Scriptorium
 
-A beautiful interactive web application that displays boxes containing historical objects. Each object can be clicked to reveal detailed information and poetry.
+Archivus Scriptorium is an interactive web experience where treasured poems and meaningful texts come together with beautiful objects—both real and imagined—to create a new, contemplative way to enjoy language. Inspired by the ancient scriptoriums where rare texts were lovingly preserved, this project offers a modern tribute to the art of curation, memory, and visual storytelling.
+
+Each box contains a curated set of objects paired with poetic or reflective writings. The modular design makes it easy for anyone to create their own box by following a simple format and uploading images—whether crafted by hand or generated with the help of AI tools.
 
 ![Rendered Box Example](docs/images/sample-rendered-box.png)
 
