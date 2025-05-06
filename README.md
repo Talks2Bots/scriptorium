@@ -6,7 +6,7 @@ Each box contains a curated set of objects paired with poetic or reflective writ
 
 ## Live Demo
 
-Experience Archivus Scriptorium: [View Live Application](https://scriptorium.netlify.app)
+Experience Archivus Scriptorium: [View Live Application](https://archivusscriptorium.netlify.app/)
 
 ![Rendered Box Example](docs/images/sample-rendered-box.png)
 
