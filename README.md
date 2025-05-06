@@ -2,6 +2,8 @@
 
 A beautiful interactive web application that displays boxes containing historical objects. Each object can be clicked to reveal detailed information and poetry.
 
+![Rendered Box Example](docs/images/sample-rendered-box.png)
+
 ## Features
 
 - Interactive boxes with opening/closing functionality
@@ -9,6 +11,14 @@ A beautiful interactive web application that displays boxes containing historica
 - Each box contains 7 clickable objects
 - Click on objects to see detailed views with poetry in markdown format
 - Responsive layout that works on both desktop and mobile devices
+
+## Box Examples
+
+### Closed Box
+![Closed Box Example](docs/images/closed-box.png)
+
+### Open Box with Objects
+![Open Box Example](docs/images/box-base.jpg)
 
 ## Technologies Used
 
@@ -101,6 +111,28 @@ npm run build
 - Box images: `box-base.jpg` (open box) and `closed-box.png` (closed box)
 - Object images: `img1.png` through `img7.png`
 - Text files: `text1.md` through `text7.md` (markdown format)
+
+#### Image Examples
+| Image Type | Example | 
+|------------|---------|
+| Open Box (`box-base.jpg`) | ![Box Base Example](docs/images/box-base.jpg) |
+| Closed Box (Plain) | ![Closed Box Example](docs/images/closed-box.jpg) |
+| Closed Box (with Design) | ![Closed Box Example](docs/images/closed-box.png) |
+| Sample Object (`img1.png`) | ![Object Example](docs/images/img1.png) |
+
+### Sample Object Images
+
+Box objects should be transparent PNG files with appropriate sizing. Here are examples of the 7 objects from a sample box:
+
+<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+  <img src="docs/images/img1.png" alt="Object 1" width="100" />
+  <img src="docs/images/img2.png" alt="Object 2" width="100" />
+  <img src="docs/images/img3.png" alt="Object 3" width="100" />
+  <img src="docs/images/img4.png" alt="Object 4" width="100" />
+  <img src="docs/images/img5.png" alt="Object 5" width="100" />
+  <img src="docs/images/img6.png" alt="Object 6" width="100" />
+  <img src="docs/images/img7.png" alt="Object 7" width="100" />
+</div>
 
 ## Project Structure
 
