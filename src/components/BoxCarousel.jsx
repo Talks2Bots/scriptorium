@@ -124,7 +124,7 @@ export default function BoxCarousel() {
   }, [debugLog, selectedBoxIndex]);
 
   // Handle wheel events for scrolling the carousel
-  const handleWheel = (event) => {
+  const handleWheel = useCallback((event) => {
     event.preventDefault();
     
     // Determine scroll direction
@@ -135,15 +135,15 @@ export default function BoxCarousel() {
       const newIndex = prevIndex + direction;
       return Math.max(0, Math.min(newIndex, boxes.length - 1));
     });
-  };
+  }, [boxes.length]);
 
-  // Handle touch events for mobile swiping
-  const handleTouchStart = (event) => {
+  // Touch and mouse event handlers
+  const handleTouchStart = useCallback((event) => {
     isDragging.current = true;
     startY.current = event.touches[0].clientY;
-  };
+  }, []);
 
-  const handleTouchMove = (event) => {
+  const handleTouchMove = useCallback((event) => {
     if (!isDragging.current) return;
     
     const currentY = event.touches[0].clientY;
@@ -161,22 +161,21 @@ export default function BoxCarousel() {
       // Reset for next swipe
       isDragging.current = false;
     }
-  };
+  }, [boxes.length]);
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = useCallback(() => {
     isDragging.current = false;
-  };
+  }, []);
 
-  // Mouse drag functionality (for desktop)
-  const handleMouseDown = (event) => {
+  const handleMouseDown = useCallback((event) => {
     isDragging.current = true;
     startY.current = event.clientY;
     
     // Prevent default browser drag behavior
     event.preventDefault();
-  };
+  }, []);
 
-  const handleMouseMove = (event) => {
+  const handleMouseMove = useCallback((event) => {
     if (!isDragging.current) return;
     
     const currentY = event.clientY;
@@ -194,14 +193,43 @@ export default function BoxCarousel() {
       // Reset start position
       startY.current = currentY;
     }
-  };
+  }, [boxes.length]);
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     isDragging.current = false;
-  };
+  }, []);
+
+  // Set up and clean up event listeners
+  useEffect(() => {
+    const carouselElement = carouselRef.current;
+    if (!carouselElement) return;
+
+    // Add event listeners
+    carouselElement.addEventListener('wheel', handleWheel, { passive: false });
+    carouselElement.addEventListener('touchstart', handleTouchStart);
+    carouselElement.addEventListener('touchmove', handleTouchMove);
+    carouselElement.addEventListener('touchend', handleTouchEnd);
+    carouselElement.addEventListener('mousedown', handleMouseDown);
+    carouselElement.addEventListener('mousemove', handleMouseMove);
+    carouselElement.addEventListener('mouseup', handleMouseUp);
+    carouselElement.addEventListener('mouseleave', handleMouseUp);
+
+    // Cleanup function
+    return () => {
+      carouselElement.removeEventListener('wheel', handleWheel);
+      carouselElement.removeEventListener('touchstart', handleTouchStart);
+      carouselElement.removeEventListener('touchmove', handleTouchMove);
+      carouselElement.removeEventListener('touchend', handleTouchEnd);
+      carouselElement.removeEventListener('mousedown', handleMouseDown);
+      carouselElement.removeEventListener('mousemove', handleMouseMove);
+      carouselElement.removeEventListener('mouseup', handleMouseUp);
+      carouselElement.removeEventListener('mouseleave', handleMouseUp);
+    };
+  }, [handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd, 
+      handleMouseDown, handleMouseMove, handleMouseUp]);
 
   // Calculate position for each box along the arc
-  const getBoxStyle = (index) => {
+  const getBoxStyle = useCallback((index) => {
     // Number of boxes in the carousel
     const totalBoxes = boxes.length;
     
@@ -243,7 +271,7 @@ export default function BoxCarousel() {
       zIndex,
       opacity: Math.abs(relativeIndex) > 2 ? 0.3 : 1
     };
-  };
+  }, [boxes.length, selectedBoxIndex]);
 
   // Create a default box placeholder SVG as a data URL
   const boxPlaceholderSvg = `
@@ -276,14 +304,6 @@ export default function BoxCarousel() {
       <div 
         className="box-carousel"
         ref={carouselRef}
-        onWheel={handleWheel}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
       >
         {boxes.map((box, index) => {
           const boxImageUrl = getBoxImage(box.folder_name);
