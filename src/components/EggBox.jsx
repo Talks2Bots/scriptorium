@@ -212,7 +212,17 @@ export default function EggBox({ boxData }) {
     };
     
     setupBox();
-  }, [boxData, getDirectStorageUrl, getSupabasePublicUrl]);
+
+    // Cleanup function to handle component unmounting
+    return () => {
+      console.log("Cleaning up box setup effect");
+      setLoading(false);
+      setError("");
+      setDetailedError(null);
+      setFolderContents([]);
+      setTextFolderContents([]);
+    };
+  }, [boxData, getDirectStorageUrl, getSupabasePublicUrl]); // Only run when boxData or URL functions change
   
   // Handle clicking on objects - using original implementation
   const handleObjectClick = async (index) => {
