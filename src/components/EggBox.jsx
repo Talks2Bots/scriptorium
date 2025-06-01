@@ -46,7 +46,7 @@ export default function EggBox({ boxData }) {
 
   // Helper function to construct direct storage URLs with cache busting
   const getDirectStorageUrl = useCallback((bucketName, path) => {
-    console.log("Building URL for", bucketName, path);
+    console.log(`🔍 Requesting file from ${bucketName}: ${path}`);
     const baseUrl = process.env.REACT_APP_SUPABASE_URL;
     if (!baseUrl) {
       console.error("No REACT_APP_SUPABASE_URL available");
@@ -56,16 +56,16 @@ export default function EggBox({ boxData }) {
     // Add cache busting parameter with current timestamp
     const timestamp = new Date().getTime();
     const url = `${baseUrl}/storage/v1/object/public/${bucketName}/${path}?t=${timestamp}`;
-    console.log("Built URL:", url);
+    console.log("📥 Download URL:", url);
     return url;
   }, []);
 
   // Use the original Supabase method to get public URL
   const getSupabasePublicUrl = useCallback((bucketName, path) => {
-    console.log("Using Supabase getPublicUrl for", bucketName, path);
+    console.log(`🔍 Getting Supabase URL for ${bucketName}: ${path}`);
     try {
       const { publicURL } = supabase.storage.from(bucketName).getPublicUrl(path);
-      console.log("Supabase publicURL:", publicURL);
+      console.log("📥 Supabase URL:", publicURL);
       return publicURL;
     } catch (err) {
       console.error("Error getting Supabase public URL:", err);
@@ -91,7 +91,8 @@ export default function EggBox({ boxData }) {
   // Set up the box - using original approach but accepting boxData from carousel
   useEffect(() => {
     const setupBox = async () => {
-      console.log("Setting up box...");
+      console.log("📦 Setting up box...");
+      console.group("Box Setup Details");
       setLoading(true);
       setError("");
       setDetailedError(null);
@@ -101,7 +102,7 @@ export default function EggBox({ boxData }) {
         
         // If boxData is provided, use it directly
         if (boxData) {
-          console.log("Using provided boxData");
+          console.log("Using provided boxData:", boxData);
           currentBox = boxData;
         } else {
           // Otherwise fetch the first box (original behavior)
@@ -135,7 +136,7 @@ export default function EggBox({ boxData }) {
         
         // Get the folder name from the box record
         const folderName = currentBox.folder_name || "dickinson-birds";
-        console.log("Using folder name:", folderName);
+        console.log("📂 Using folder:", folderName);
         setBoxFolder(folderName);
         
         // Force refresh of Supabase storage listing to avoid caching
@@ -147,7 +148,7 @@ export default function EggBox({ boxData }) {
         
         try {
           // First, list the folder contents to see what's available
-          console.log("Listing files in object-images/" + folderName);
+          console.log(`📝 Listing files in object-images/${folderName}`);
           const { data: files, error: listError } = await supabase
             .storage
             .from('object-images')
@@ -158,7 +159,7 @@ export default function EggBox({ boxData }) {
             throw new Error(`Could not list image folder contents: ${listError.message}`);
           }
           
-          console.log("Files found in object-images/" + folderName + ":", files);
+          console.log("📸 Image files found:", files);
           setFolderContents(files || []);
         } catch (storageError) {
           console.error("Storage listing error:", storageError);
@@ -166,7 +167,7 @@ export default function EggBox({ boxData }) {
 
         try {
           // Also check the text folder to make sure it exists
-          console.log("Listing files in object-texts/" + folderName);
+          console.log(`📝 Listing files in object-texts/${folderName}`);
           const { data: textFiles, error: textListError } = await supabase
             .storage
             .from('object-texts')
@@ -176,7 +177,7 @@ export default function EggBox({ boxData }) {
             console.error("Text folder listing error:", textListError);
             console.log("Warning: Could not list text folder contents");
           } else {
-            console.log("Files found in object-texts/" + folderName + ":", textFiles);
+            console.log("📄 Text files found:", textFiles);
             setTextFolderContents(textFiles || []);
           }
         } catch (textStorageError) {
@@ -187,11 +188,11 @@ export default function EggBox({ boxData }) {
         try {
           // First method: Direct URL construction
           const boxImageURL = getDirectStorageUrl('object-images', `${folderName}/box-base.jpg`);
-          console.log("Direct box image URL:", boxImageURL);
+          console.log("📥 Box base image URL:", boxImageURL);
           
           // Second method: Use Supabase's getPublicUrl
           const supabaseBoxImageURL = getSupabasePublicUrl('object-images', `${folderName}/box-base.jpg`);
-          console.log("Supabase box image URL:", supabaseBoxImageURL);
+          console.log("📥 Supabase box image URL:", supabaseBoxImageURL);
           
           // Use the Supabase method if available, otherwise direct construction
           setBoxImageUrl(supabaseBoxImageURL || boxImageURL);
@@ -200,6 +201,7 @@ export default function EggBox({ boxData }) {
           const closedBoxImageURL = getSupabasePublicUrl('object-images', `${folderName}/closed-box.png`) || 
                                    getDirectStorageUrl('object-images', `${folderName}/closed-box.png`);
           setClosedBoxImageUrl(closedBoxImageURL);
+          console.log("📥 Closed box image URL:", closedBoxImageURL);
         } catch (urlError) {
           console.error("Error constructing URLs:", urlError);
         }
@@ -209,13 +211,14 @@ export default function EggBox({ boxData }) {
       }
       
       setLoading(false);
+      console.groupEnd();
     };
     
     setupBox();
 
     // Cleanup function to handle component unmounting
     return () => {
-      console.log("Cleaning up box setup effect");
+      console.log("🧹 Cleaning up box setup effect");
       setLoading(false);
       setError("");
       setDetailedError(null);
