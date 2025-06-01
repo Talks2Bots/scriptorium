@@ -94,23 +94,24 @@ export default function BoxCarousel() {
         debugLog("Fetched boxes:", data);
         setBoxes(data);
         
-        // Pre-check image existence for each box
-        data.forEach(async (box, index) => {
+        // Instead of checking all boxes at once, only check the selected box
+        if (data.length > 0) {
+          const selectedBox = data[selectedBoxIndex] || data[0];
           try {
             const { data: folderData, error: folderError } = await supabase
               .storage
               .from('object-images')
-              .list(box.folder_name, { limit: 20 });
+              .list(selectedBox.folder_name, { limit: 20 });
               
             if (folderError) {
-              console.error(`Error listing files for box ${box.id} (${box.folder_name}):`, folderError);
+              console.error(`Error listing files for selected box ${selectedBox.id} (${selectedBox.folder_name}):`, folderError);
             } else {
-              console.log(`Box ${box.id} (${box.folder_name}) contents:`, folderData);
+              console.log(`Selected box ${selectedBox.id} (${selectedBox.folder_name}) contents:`, folderData);
             }
           } catch (err) {
-            console.error(`Error checking box ${box.id} folder:`, err);
+            console.error(`Error checking selected box ${selectedBox.id} folder:`, err);
           }
-        });
+        }
       } catch (err) {
         console.error("Unexpected error fetching boxes:", err);
         setError(err.message || "An unexpected error occurred");
@@ -120,7 +121,7 @@ export default function BoxCarousel() {
     };
     
     fetchBoxes();
-  }, [debugLog]);
+  }, [debugLog, selectedBoxIndex]);
 
   // Handle wheel events for scrolling the carousel
   const handleWheel = (event) => {
