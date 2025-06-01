@@ -247,41 +247,44 @@ export default function EggBox({ boxData }) {
       setModalImg(imageURL);
       setModalTitle(`Item ${fileIndex}`);
       
-      // Use Supabase getPublicUrl for text URL too
+      // Check localStorage first for cached text content
+      const cacheKey = `${boxFolder}-text-${fileIndex}`;
+      const cachedContent = localStorage.getItem(cacheKey);
+      
+      if (cachedContent) {
+        console.log("Using cached text content");
+        setModalText(cachedContent);
+        setLoading(false);
+        return;
+      }
+      
+      // If not in cache, fetch from Supabase
       const textURL = getSupabasePublicUrl('object-texts', textPath) || 
                      getDirectStorageUrl('object-texts', textPath);
       
       try {
         console.log("Fetching text from URL:", textURL);
-        // Add cache control headers to the fetch request - as in original
-        const res = await fetch(textURL, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
-        });
+        // Allow browser caching
+        const res = await fetch(textURL);
         
         if (!res.ok) {
           console.log(`Markdown fetch failed with status ${res.status}, trying txt fallback`);
-          // If .md file is not found, try .txt as fallback for backward compatibility
+          // Try .txt fallback
           const txtPath = `${boxFolder}/text${fileIndex}.txt`;
           const txtURL = getSupabasePublicUrl('object-texts', txtPath) || 
                         getDirectStorageUrl('object-texts', txtPath);
           
           console.log("Trying txt URL:", txtURL);
-          const txtRes = await fetch(txtURL, {
-            cache: 'no-store',
-            headers: {
-              'Cache-Control': 'no-cache, no-store, must-revalidate',
-              'Pragma': 'no-cache',
-              'Expires': '0'
-            }
-          });
+          const txtRes = await fetch(txtURL);
           
           if (txtRes.ok) {
             const txtContent = await txtRes.text();
+            // Cache the content
+            try {
+              localStorage.setItem(cacheKey, txtContent);
+            } catch (cacheError) {
+              console.warn("Could not cache text content:", cacheError);
+            }
             setModalText(txtContent);
             console.log("Text content loaded from txt file");
           } else {
@@ -290,6 +293,12 @@ export default function EggBox({ boxData }) {
           }
         } else {
           const markdownContent = await res.text();
+          // Cache the content
+          try {
+            localStorage.setItem(cacheKey, markdownContent);
+          } catch (cacheError) {
+            console.warn("Could not cache text content:", cacheError);
+          }
           setModalText(markdownContent);
           console.log("Text content loaded from markdown file");
         }
