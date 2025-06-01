@@ -44,7 +44,7 @@ export default function EggBox({ boxData }) {
     { x: 51.8, y: 63.3 },
   ];
 
-  // Helper function to construct direct storage URLs with cache busting
+  // Helper function to construct direct storage URLs without cache busting
   const getDirectStorageUrl = useCallback((bucketName, path) => {
     console.log(`🔍 Requesting file from ${bucketName}: ${path}`);
     const baseUrl = process.env.REACT_APP_SUPABASE_URL;
@@ -53,25 +53,28 @@ export default function EggBox({ boxData }) {
       return null;
     }
     
-    // Add cache busting parameter with current timestamp
-    const timestamp = new Date().getTime();
-    const url = `${baseUrl}/storage/v1/object/public/${bucketName}/${path}?t=${timestamp}`;
+    // Remove cache busting to allow browser caching
+    const url = `${baseUrl}/storage/v1/object/public/${bucketName}/${path}`;
     console.log("📥 Download URL:", url);
     return url;
   }, []);
 
-  // Use the original Supabase method to get public URL
+  // Use the Supabase method to get public URL
   const getSupabasePublicUrl = useCallback((bucketName, path) => {
     console.log(`🔍 Getting Supabase URL for ${bucketName}: ${path}`);
     try {
       const { publicURL } = supabase.storage.from(bucketName).getPublicUrl(path);
+      if (!publicURL) {
+        console.log("No Supabase URL available, using direct URL");
+        return getDirectStorageUrl(bucketName, path);
+      }
       console.log("📥 Supabase URL:", publicURL);
       return publicURL;
     } catch (err) {
       console.error("Error getting Supabase public URL:", err);
-      return null;
+      return getDirectStorageUrl(bucketName, path);
     }
-  }, []);
+  }, [getDirectStorageUrl]);
 
   // Check URL for a debug parameter on component mount
   useEffect(() => {
@@ -184,22 +187,15 @@ export default function EggBox({ boxData }) {
           console.error("Text storage listing error:", textStorageError);
         }
         
-        // Try both methods to get URLs
+        // Try only one method to get URLs
         try {
-          // First method: Direct URL construction
-          const boxImageURL = getDirectStorageUrl('object-images', `${folderName}/box-base.jpg`);
+          // Use only one method to get URLs
+          const boxImageURL = getSupabasePublicUrl('object-images', `${folderName}/box-base.jpg`);
           console.log("📥 Box base image URL:", boxImageURL);
-          
-          // Second method: Use Supabase's getPublicUrl
-          const supabaseBoxImageURL = getSupabasePublicUrl('object-images', `${folderName}/box-base.jpg`);
-          console.log("📥 Supabase box image URL:", supabaseBoxImageURL);
-          
-          // Use the Supabase method if available, otherwise direct construction
-          setBoxImageUrl(supabaseBoxImageURL || boxImageURL);
+          setBoxImageUrl(boxImageURL);
           
           // Get the closed box image URL
-          const closedBoxImageURL = getSupabasePublicUrl('object-images', `${folderName}/closed-box.png`) || 
-                                   getDirectStorageUrl('object-images', `${folderName}/closed-box.png`);
+          const closedBoxImageURL = getSupabasePublicUrl('object-images', `${folderName}/closed-box.png`);
           setClosedBoxImageUrl(closedBoxImageURL);
           console.log("📥 Closed box image URL:", closedBoxImageURL);
         } catch (urlError) {
@@ -242,10 +238,8 @@ export default function EggBox({ boxData }) {
       const imagePath = `${boxFolder}/img${fileIndex}.png`;
       const textPath = `${boxFolder}/text${fileIndex}.md`;
       
-      // Use Supabase getPublicUrl first, fallback to direct URL construction
-      const imageURL = getSupabasePublicUrl('object-images', imagePath) || 
-                      getDirectStorageUrl('object-images', imagePath);
-      
+      // Use single method for URL construction
+      const imageURL = getSupabasePublicUrl('object-images', imagePath);
       console.log("Using image URL:", imageURL);
       setModalImg(imageURL);
       setModalTitle(`Item ${fileIndex}`);
@@ -262,8 +256,7 @@ export default function EggBox({ boxData }) {
       }
       
       // If not in cache, fetch from Supabase
-      const textURL = getSupabasePublicUrl('object-texts', textPath) || 
-                     getDirectStorageUrl('object-texts', textPath);
+      const textURL = getSupabasePublicUrl('object-texts', textPath);
       
       try {
         console.log("Fetching text from URL:", textURL);
@@ -274,8 +267,7 @@ export default function EggBox({ boxData }) {
           console.log(`Markdown fetch failed with status ${res.status}, trying txt fallback`);
           // Try .txt fallback
           const txtPath = `${boxFolder}/text${fileIndex}.txt`;
-          const txtURL = getSupabasePublicUrl('object-texts', txtPath) || 
-                        getDirectStorageUrl('object-texts', txtPath);
+          const txtURL = getSupabasePublicUrl('object-texts', txtPath);
           
           console.log("Trying txt URL:", txtURL);
           const txtRes = await fetch(txtURL);
@@ -380,8 +372,7 @@ export default function EggBox({ boxData }) {
           {CUP_POS.map((position, i) => {
             const imagePath = `${boxFolder}/img${i+1}.png`;
             // Try both URL methods
-            const imageUrl = getSupabasePublicUrl('object-images', imagePath) || 
-                            getDirectStorageUrl('object-images', imagePath);
+            const imageUrl = getSupabasePublicUrl('object-images', imagePath);
             
             return (
               <img
