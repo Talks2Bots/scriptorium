@@ -169,8 +169,7 @@ export default function EggBox({ boxData }) {
         // Force refresh of Supabase storage listing to avoid caching
         const listOptions = {
           limit: 100,
-          offset: 0,
-          sortBy: { column: 'name', order: 'asc' }
+          offset: 0
         };
         
         try {
