@@ -25,6 +25,7 @@ export default function EggBox({ boxData }) {
     hasKey: process.env.REACT_APP_SUPABASE_ANON_KEY ? "Key is set" : "Key is missing",
     fullInfo: true
   });
+  const [urlCache, setUrlCache] = useState({});
 
   // Debug console logging helper
   const debugLog = useCallback((...args) => {
@@ -46,6 +47,14 @@ export default function EggBox({ boxData }) {
 
   // Helper function to construct direct storage URLs without cache busting
   const getDirectStorageUrl = useCallback((bucketName, path) => {
+    const cacheKey = `${bucketName}:${path}`;
+    
+    // Check URL cache first
+    if (urlCache[cacheKey]) {
+      console.log(`📥 Using cached URL for ${path}`);
+      return urlCache[cacheKey];
+    }
+
     console.log(`🔍 Requesting file from ${bucketName}: ${path}`);
     const baseUrl = process.env.REACT_APP_SUPABASE_URL;
     if (!baseUrl) {
@@ -53,14 +62,25 @@ export default function EggBox({ boxData }) {
       return null;
     }
     
-    // Remove cache busting to allow browser caching
     const url = `${baseUrl}/storage/v1/object/public/${bucketName}/${path}`;
-    console.log("📥 Download URL:", url);
+    
+    // Cache the URL
+    setUrlCache(prev => ({...prev, [cacheKey]: url}));
+    
+    console.log("📥 Generated URL:", url);
     return url;
-  }, []);
+  }, [urlCache]);
 
   // Use the Supabase method to get public URL
   const getSupabasePublicUrl = useCallback((bucketName, path) => {
+    const cacheKey = `${bucketName}:${path}`;
+    
+    // Check URL cache first
+    if (urlCache[cacheKey]) {
+      console.log(`📥 Using cached URL for ${path}`);
+      return urlCache[cacheKey];
+    }
+
     console.log(`🔍 Getting Supabase URL for ${bucketName}: ${path}`);
     try {
       const { publicURL } = supabase.storage.from(bucketName).getPublicUrl(path);
@@ -68,13 +88,17 @@ export default function EggBox({ boxData }) {
         console.log("No Supabase URL available, using direct URL");
         return getDirectStorageUrl(bucketName, path);
       }
-      console.log("📥 Supabase URL:", publicURL);
+      
+      // Cache the URL
+      setUrlCache(prev => ({...prev, [cacheKey]: publicURL}));
+      
+      console.log("📥 Generated Supabase URL:", publicURL);
       return publicURL;
     } catch (err) {
       console.error("Error getting Supabase public URL:", err);
       return getDirectStorageUrl(bucketName, path);
     }
-  }, [getDirectStorageUrl]);
+  }, [urlCache, getDirectStorageUrl]);
 
   // Check URL for a debug parameter on component mount
   useEffect(() => {
