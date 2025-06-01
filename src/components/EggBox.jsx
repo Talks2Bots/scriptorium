@@ -379,45 +379,49 @@ export default function EggBox({ boxData }) {
             Close
           </div>
           
-          <img 
-            src={boxImageUrl} 
-            className="layer" 
-            alt="velvet box" 
-            onError={(e) => {
-              console.error("Box base image failed to load:", e);
-              e.target.style.border = "2px solid red";
-              e.target.style.width = "300px";
-              e.target.style.height = "200px";
-              e.target.style.background = "#ffeeee";
-            }}
-          />
-
-          {/* Render the 7 object slots using the direct URL construction */}
-          {CUP_POS.map((position, i) => {
-            const imagePath = `${boxFolder}/img${i+1}.png`;
-            // Try both URL methods
-            const imageUrl = getSupabasePublicUrl('object-images', imagePath);
-            
-            return (
-              <img
-                key={i}
-                src={imageUrl}
-                className="slot"
-                style={{
-                  left: `${position.x}%`,
-                  top: `${position.y}%`,
-                  zIndex: i,
-                }}
-                alt={`Object ${i+1}`}
-                onClick={() => handleObjectClick(i)}
+          {/* Only render box contents when modal is not open */}
+          {!modalOpen && (
+            <>
+              <img 
+                src={boxImageUrl} 
+                className="layer" 
+                alt="velvet box" 
                 onError={(e) => {
-                  console.error(`Object ${i+1} image failed to load:`, e);
+                  console.error("Box base image failed to load:", e);
                   e.target.style.border = "2px solid red";
+                  e.target.style.width = "300px";
+                  e.target.style.height = "200px";
                   e.target.style.background = "#ffeeee";
                 }}
               />
-            );
-          })}
+
+              {/* Render the 7 object slots using the direct URL construction */}
+              {CUP_POS.map((position, i) => {
+                const imagePath = `${boxFolder}/img${i+1}.png`;
+                const imageUrl = getSupabasePublicUrl('object-images', imagePath);
+                
+                return (
+                  <img
+                    key={i}
+                    src={imageUrl}
+                    className="slot"
+                    style={{
+                      left: `${position.x}%`,
+                      top: `${position.y}%`,
+                      zIndex: i,
+                    }}
+                    alt={`Object ${i+1}`}
+                    onClick={() => handleObjectClick(i)}
+                    onError={(e) => {
+                      console.error(`Object ${i+1} image failed to load:`, e);
+                      e.target.style.border = "2px solid red";
+                      e.target.style.background = "#ffeeee";
+                    }}
+                  />
+                );
+              })}
+            </>
+          )}
         </>
       )}
       
